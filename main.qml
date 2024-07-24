@@ -38,5 +38,16 @@ Window {
             radius: 700 // meters
             color: "green"
         }
+
+        // Sketchy interaction - jumpy
+        MouseArea {
+                    anchors.fill: parent
+                    drag.target: map
+
+                    // Panning (dragging to move the map)
+                    onPositionChanged: {
+                        map.center = map.toCoordinate(Qt.point(mouse.x, mouse.y));
+                    }
+                }
     }
 }
