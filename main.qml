@@ -23,19 +23,19 @@ Window {
 
         MapCircle {
             center: QtPositioning.coordinate(-37.8140, 144.9632) // Melbourne
-            radius: 500 // meters
+            radius: 500 // metres
             color: "blue"
         }
 
         MapCircle {
             center: QtPositioning.coordinate(-37.8255, 144.9701) // Another location
-            radius: 300 // meters
+            radius: 300 // metres
             color: "red"
         }
 
         MapCircle {
             center: QtPositioning.coordinate(-37.8053, 144.9578) // Another location
-            radius: 700 // meters
+            radius: 700 // metres
             color: "green"
         }
 
