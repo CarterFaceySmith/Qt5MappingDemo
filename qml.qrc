@@ -1,5 +1,9 @@
 <RCC>
     <qresource prefix="/">
         <file>main.qml</file>
+        <file>map.html</file>
+    </qresource>
+    <qresource prefix="/Assets">
+        <file>melbourne-roads-map.jpg</file>
     </qresource>
 </RCC>

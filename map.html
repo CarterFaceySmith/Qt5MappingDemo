@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Map</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+        }
+        #map {
+            width: 100vw;
+            height: 100vh;
+        }
+        .leaflet-marker-icon {
+            border-radius: 50%;
+            background-color: red;
+            border: 2px solid black;
+        }
+        .leaflet-popup-content {
+            width: 150px;
+        }
+        #controls {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background-color: white;
+            border: 2px solid black;
+            padding: 10px;
+            border-radius: 5px;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+        }
+        #controls h3 {
+            margin-top: 0;
+        }
+    </style>
+</head>
+<body>
+    <div id="map"></div>
+    <div id="controls">
+        <h3>Map Controls</h3>
+        <ul>
+            <li><strong>Ctrl + Click:</strong> Add Point</li>
+            <li><strong>Shift + Click:</strong> Delete Point</li>
+            <li><strong>Click:</strong> Connect Points</li>
+            <li><strong>Drag:</strong> Pan Map</li>
+            <li><strong>Scroll Wheel:</strong> Zoom In/Out</li>
+        </ul>
+    </div>
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const map = L.map('map').setView([-37.814, 144.963], 13); // Melbourne
+
+            // Add OSM tile layer
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap contributors'
+            }).addTo(map);
+
+            // Data structures to store points and lines
+            const points = [];
+            const lines = [];
+
+            const markersLayer = L.layerGroup().addTo(map);
+            const linesLayer = L.layerGroup().addTo(map);
+
+            function drawPoints() {
+                markersLayer.clearLayers();
+                points.forEach(point => {
+                    L.marker([point.lat, point.lon], {draggable: true}).addTo(markersLayer)
+                        .on('click', function() {
+                            if (confirm('Delete this point?')) {
+                                const index = points.indexOf(point);
+                                if (index !== -1) {
+                                    points.splice(index, 1);
+                                    drawPoints();
+                                    drawLines();
+                                }
+                            }
+                        });
+                });
+            }
+
+            function drawLines() {
+                linesLayer.clearLayers();
+                lines.forEach(line => {
+                    L.polyline([[line.start.lat, line.start.lon], [line.end.lat, line.end.lon]], {
+                        color: 'black',
+                        weight: 2
+                    }).addTo(linesLayer);
+                });
+            }
+
+            map.on('click', function(event) {
+                const coords = {
+                    lat: event.latlng.lat,
+                    lon: event.latlng.lng
+                };
+
+                if (event.originalEvent.ctrlKey) { // Add point
+                    points.push(coords);
+                    drawPoints();
+                    drawLines();
+                } else if (event.originalEvent.shiftKey) { // Delete point
+                    const index = points.findIndex(point => {
+                        return Math.hypot(point.lat - coords.lat, point.lon - coords.lon) < 0.01;
+                    });
+                    if (index !== -1) {
+                        points.splice(index, 1);
+                        // Remove associated lines
+                        lines = lines.filter(line => line.start !== points[index] && line.end !== points[index]);
+                        drawPoints();
+                        drawLines();
+                    }
+                } else { // Link points with line
+                    if (points.length >= 2) {
+                        const lastPoint = points[points.length - 1];
+                        const secondLastPoint = points[points.length - 2];
+                        lines.push({ start: secondLastPoint, end: lastPoint });
+                        drawPoints();
+                        drawLines();
+                    }
+                }
+            });
+
+            // Handling map zooming
+            map.on('zoomend', function() {
+                console.log('Zoom level:', map.getZoom());
+            });
+        });
+    </script>
+</body>
+</html>
