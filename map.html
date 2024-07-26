@@ -6,6 +6,7 @@
     <title>Interactive Map</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
     <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+    <!-- FIXME: Refactor to separate stylesheet file. -->
     <style>
         body {
             margin: 0;
@@ -139,6 +140,7 @@
             </select>
         </div>
     </div>
+    <!-- FIXME: Refactor to separate script.js file. -->
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
     <script>
         document.addEventListener("DOMContentLoaded", function() {
@@ -228,8 +230,8 @@
                 }
 
                 userRing = L.circle(latlng, {
-                    radius: 3000, // Radius of the ring in meters
-                    color: '#FF5722', // Orange color
+                    radius: 3000, // Radius of the ring in metres
+                    color: '#FF5722', // Orange
                     weight: 2,
                     opacity: 1,
                     fillOpacity: 0,
