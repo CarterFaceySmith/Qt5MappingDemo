@@ -267,14 +267,9 @@
 
             function drawPoints() {
                 markersLayer.clearLayers();
-                points.forEach((point, index) => {
-                    const marker = L.marker([point.lat, point.lon], {draggable: true})
-                        .addTo(markersLayer)
-                        .on('click', function() {
-                            if (mode === 'remove-point') {
-                                removePoint(index);
-                            }
-                        });
+                points.forEach((point) => {
+                    L.marker([point.lat, point.lon], {draggable: true})
+                        .addTo(markersLayer);
                 });
             }
 
@@ -303,6 +298,8 @@
                 drawLines();
             }
 
+            let firstPoint = null;
+
             // Handle map click to add points or draw lines based on mode
             map.on('click', function(event) {
                 const coords = event.latlng;
@@ -317,15 +314,15 @@
                     points.push(pointCoords);
                     drawPoints();
                 } else if (mode === 'draw-line') {
-                    points.push(pointCoords);
-                    drawPoints();
-
-                    // Draw a line connecting the last two points if they exist
-                    if (points.length > 1) {
-                        const lastPoint = points[points.length - 1];
-                        const secondLastPoint = points[points.length - 2];
-                        lines.push({ start: secondLastPoint, end: lastPoint });
+                    if (firstPoint === null) {
+                        // First point selected
+                        firstPoint = pointCoords;
+                    } else {
+                        // Second point selected
+                        const secondPoint = pointCoords;
+                        lines.push({ start: firstPoint, end: secondPoint });
                         drawLines();
+                        firstPoint = null; // Reset for the next line
                     }
                 }
             });
@@ -336,6 +333,7 @@
                 this.classList.add('active');
                 document.getElementById('draw-line').classList.remove('active');
                 document.getElementById('remove-point').classList.remove('active');
+                firstPoint = null; // Reset line drawing mode
             });
 
             document.getElementById('draw-line').addEventListener('click', function() {
@@ -343,6 +341,7 @@
                 this.classList.add('active');
                 document.getElementById('add-point').classList.remove('active');
                 document.getElementById('remove-point').classList.remove('active');
+                firstPoint = null; // Reset line drawing mode
             });
 
             document.getElementById('remove-point').addEventListener('click', function() {
@@ -350,6 +349,7 @@
                 this.classList.add('active');
                 document.getElementById('add-point').classList.remove('active');
                 document.getElementById('draw-line').classList.remove('active');
+                firstPoint = null; // Reset line drawing mode
             });
 
             // Map mode toggle
