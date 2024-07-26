@@ -128,6 +128,7 @@
         <div id="map-actions">
             <button id="add-point" class="active">Add Point</button>
             <button id="draw-line">Draw Line</button>
+            <button id="remove-point">Remove Point</button>
         </div>
         <div id="map-mode-toggle">
             <label for="map-mode">Map Type:</label>
@@ -266,8 +267,14 @@
 
             function drawPoints() {
                 markersLayer.clearLayers();
-                points.forEach(point => {
-                    L.marker([point.lat, point.lon], {draggable: true}).addTo(markersLayer);
+                points.forEach((point, index) => {
+                    const marker = L.marker([point.lat, point.lon], {draggable: true})
+                        .addTo(markersLayer)
+                        .on('click', function() {
+                            if (mode === 'remove-point') {
+                                removePoint(index);
+                            }
+                        });
                 });
             }
 
@@ -281,6 +288,19 @@
                         }).addTo(linesLayer);
                     }
                 });
+            }
+
+            function removePoint(index) {
+                const pointToRemove = points[index];
+                points.splice(index, 1);
+
+                // Remove lines connected to the removed point
+                lines = lines.filter(line =>
+                    !((line.start === pointToRemove) || (line.end === pointToRemove))
+                );
+
+                drawPoints();
+                drawLines();
             }
 
             // Handle map click to add points or draw lines based on mode
@@ -315,12 +335,21 @@
                 mode = 'add-point';
                 this.classList.add('active');
                 document.getElementById('draw-line').classList.remove('active');
+                document.getElementById('remove-point').classList.remove('active');
             });
 
             document.getElementById('draw-line').addEventListener('click', function() {
                 mode = 'draw-line';
                 this.classList.add('active');
                 document.getElementById('add-point').classList.remove('active');
+                document.getElementById('remove-point').classList.remove('active');
+            });
+
+            document.getElementById('remove-point').addEventListener('click', function() {
+                mode = 'remove-point';
+                this.classList.add('active');
+                document.getElementById('add-point').classList.remove('active');
+                document.getElementById('draw-line').classList.remove('active');
             });
 
             // Map mode toggle
