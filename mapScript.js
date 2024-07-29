@@ -13,6 +13,12 @@
 // No need to define class explicitly?
 
 const icons = {
+    user: L.divIcon({
+        className: 'user-position-icon',
+        html: '<i class="material-icons">flight</i>',
+        iconSize: [24, 24],
+        iconAnchor: [12, 12]
+    }),
     plane: L.divIcon({
         className: 'user-position-icon',
         html: '<i class="material-icons">flight</i>',
@@ -65,13 +71,6 @@ function createEntity(name, UID, icon, radius, latitude, longitude) {
     getLong() { return this.long; }
   };
 }
-
-// const additionalPositions = [
-//     { lat: entity1.lat, lng: entity1.long, icon: entity1.icon },
-//     { lat: -37.804, lng: 144.913, icon: icons.heart },
-//     { lat: -37.824, lng: 144.933, icon: icons.check },
-//     { lat: -37.844, lng: 144.953, icon: icons.alert }
-// ];
 
 // Simulating a database with an array
 const database = [];
@@ -155,17 +154,6 @@ document.addEventListener("DOMContentLoaded", function() {
     const markersLayer = L.layerGroup().addTo(map);
     const linesLayer = L.layerGroup().addTo(map);
 
-    // Define user position icon with Material Icons
-    const userIcon = L.divIcon({
-        className: 'user-position-icon',
-        html: '<i class="material-icons">flight</i>',
-        iconSize: [24, 24],
-        iconAnchor: [12, 12]
-    });
-
-    // Define additional icons
-
-
     let userMarker;
     let userRing;
     let userSmallRing;
@@ -204,16 +192,9 @@ document.addEventListener("DOMContentLoaded", function() {
         }
     }
 
-    const userPosition = { lat: -37.814, lng: 144.963 }; // Central Melbourne
-    updateUserPosition(userPosition);
-
-    // const entity1 = createEntity('DemoEnt', 'ABC123', icons.star, 700, -37.805, 144.963)
-    // const additionalPositions = [
-    //     { lat: entity1.lat, lng: entity1.long, icon: entity1.icon },
-    //     { lat: -37.804, lng: 144.913, icon: icons.heart },
-    //     { lat: -37.824, lng: 144.933, icon: icons.check },
-    //     { lat: -37.844, lng: 144.953, icon: icons.alert }
-    // ];
+    // const userPosition = { lat: -37.814, lng: 144.963 }; // Central Melbourne
+    const user = createEntity('User', 'UID1USER', icons.user, 700, -37.814, 144.963);
+    updateUserPosition({lat: user.lat, lng: user.long});
 
     database.forEach(entity => {
         L.marker([entity.lat, entity.long], { icon: entity.icon }).addTo(map);
