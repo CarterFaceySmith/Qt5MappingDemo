@@ -2,6 +2,8 @@
     <qresource prefix="/">
         <file>main.qml</file>
         <file>map.html</file>
+        <file>mapScript.js</file>
+        <file>mapStyle.css</file>
     </qresource>
     <qresource prefix="/Assets">
         <file>melbourne-roads-map.jpg</file>
