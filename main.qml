@@ -5,9 +5,9 @@ import QtWebChannel 1.15
 
 ApplicationWindow {
     visible: true
-    width: 800
-    height: 600
-    title: "Qt WebChannel Example"
+    width: 1024
+    height: 768
+    title: "Qt5 WebChannel Mapping Demo"
 
     WebEngineView {
         id: webView
@@ -16,7 +16,7 @@ ApplicationWindow {
 
         onLoadProgressChanged: {
             // Setup WebChannel once the page is loaded
-            webView.runJavaScript("initializeWebChannel();");
+            webView.runJavaScript("initialiseWebChannel();");
         }
     }
 
