@@ -37,7 +37,7 @@ int main(int argc, char *argv[])
 
     engine.rootContext()->setContextProperty("EntityManager", &entityManager);
 
-    const QUrl url(QStringLiteral("qrc:/main.qml"));
+    const QUrl url(QStringLiteral("qrc:///main.qml"));
     engine.load(url);
 
     if (engine.rootObjects().isEmpty())

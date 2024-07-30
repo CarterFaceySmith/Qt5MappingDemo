@@ -15,10 +15,7 @@ ApplicationWindow {
         url: "qrc:/map.html"
 
         onLoadProgressChanged: {
-            // Setup WebChannel once the page is loaded
             webView.runJavaScript("initialiseWebChannel();");
         }
     }
-
-    // Add other QML components as needed
 }

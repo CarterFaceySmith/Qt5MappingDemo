@@ -14,6 +14,75 @@ function sendMessage() {
     }
 }
 
+const icons = {
+    user: L.divIcon({
+        className: 'user-position-icon',
+        html: '<i class="material-icons">flight</i>',
+        iconSize: [24, 24],
+        iconAnchor: [12, 12]
+    }),
+    plane: L.divIcon({
+        className: 'user-position-icon',
+        html: '<i class="material-icons">flight</i>',
+        iconSize: [24, 24],
+        iconAnchor: [12, 12],
+        draggable: false
+    }),
+    star: L.divIcon({
+        className: 'additional-icon',
+        html: '<i class="material-icons">star</i>',
+        iconSize: [24, 24],
+        iconAnchor: [12, 12],
+        draggable: true // FIXME: Draggable icons not working - potential map layering issue?
+
+    }),
+    heart: L.divIcon({
+        className: 'additional-icon',
+        html: '<i class="material-icons">favorite</i>',
+        iconSize: [24, 24],
+        iconAnchor: [12, 12],
+    }),
+    check: L.divIcon({
+        className: 'additional-icon',
+        html: '<i class="material-icons">check</i>',
+        iconSize: [24, 24],
+        iconAnchor: [12, 12],
+    }),
+    alert: L.divIcon({
+        className: 'additional-icon',
+        html: '<i class="material-icons">warning</i>',
+        iconSize: [24, 24],
+        iconAnchor: [12, 12],
+    })
+};
+
+// Factory function to create entities
+function createEntity(name, UID, icon, radius, latitude, longitude) {
+  return {
+    name: name,
+    UID: UID,
+    icon: icon,
+    radius: radius,
+    lat: latitude,
+    long: longitude,
+    getName() { return this.name; },
+    getUID() { return this.UID; },
+    getIcon() { return this.icon; },
+    getRadius() { return this.radius; },
+    getLat() { return this.lat; },
+    getLong() { return this.long; }
+  };
+}
+
+// Simulating a database with an array
+const database = [];
+
+// Adding entities to the "database"
+database.push(createEntity('Entity1', 'UID001', icons.heart, 700, -37.804, 144.913));
+database.push(createEntity('Entity2', 'UID002', icons.star, 700, -37.824, 144.933));
+database.push(createEntity('Entity3', 'UID003', icons.alert, 700, -37.844, 144.953));
+
+
 document.addEventListener("DOMContentLoaded", function() {
     const map = L.map('map').setView([-37.814, 144.963], 13); // Melbourne
 
@@ -247,5 +316,9 @@ document.addEventListener("DOMContentLoaded", function() {
     document.getElementById('toggle-centre').addEventListener('click', function() {
         autoCentreOnPlane = !autoCentreOnPlane;
         this.classList.toggle('active', autoCentreOnPlane);
+    });
+
+    document.getElementById('message-cpp').addEventListener('click', function() {
+        sendMessage();
     });
 });
