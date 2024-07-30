@@ -7,7 +7,6 @@ QT += quick core gui webenginewidgets webchannel
 SOURCES += \
         Entity.cpp \
         EntityManager.cpp \
-        Foo.cpp \
         main.cpp
 
 RESOURCES += qml.qrc
@@ -29,5 +28,4 @@ DISTFILES += \
 
 HEADERS += \
     Entity.h \
-    EntityManager.h \
-    Foo.h
+    EntityManager.h

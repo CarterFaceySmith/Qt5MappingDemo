@@ -1,75 +1,13 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Interactive Map</title>
-    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
-    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons" />
-    <link rel="stylesheet" type="text/css" href="mapStyle.css" />
+    <title>Qt WebChannel Example</title>
+    <script src="qrc:///qtwebchannel/qwebchannel.js"></script>
+    <script src="mapScript.js"></script>
 </head>
 <body>
-    <div id="map"></div>
-    <div id="controls">
-        <h3>Map Controls</h3>
-        <ul>
-            <li><strong>Click:</strong> Set/Delete Lines and Points</li>
-            <li><strong>Drag:</strong> Pan Map</li>
-            <li><strong>Scroll Wheel:</strong> Zoom In/Out</li>
-            <li><strong>Arrow Keys:</strong> Move Plane</li>
-        </ul>
-        <div id="map-actions">
-            <li><button id="scroll" class="active">Scroll</button></li>
-            <li><button id="add-point">Add Point</button></li>
-            <li><button id="demo-entities">Demo Entities</button></li>
-            <li><button id="draw-line">Draw Line</button></li>
-            <li><button id="remove-point">Remove Point</button></li>
-        </div>
-        <div id="map-mode-toggle">
-            <label for="map-mode">Map Type:</label>
-            <select id="map-mode">
-                <option value="osm">OpenStreetMap</option>
-                <option value="stamen-terrain">Stamen Terrain</option>
-                <option value="carto-light">Carto Light</option>
-            </select>
-        </div>
-        <div id="center-toggle">
-            <button id="toggle-centre">Centre on Plane</button>
-            <button id="openModal">Create Entity</button>
-        </div>
-        <!-- Modal for Creating Entities -->
-        <div id="entityModal" class="modal">
-            <div class="modal-content">
-                <span class="close">&times;</span>
-                <h2>Create New Entity</h2>
-                <form id="entityForm">
-                    <label for="entityName">Name:</label>
-                    <input type="text" id="entityName" required><br><br>
-
-                    <label for="entityId">ID:</label>
-                    <input type="text" id="entityId" required><br><br>
-
-                    <label for="entityIcon">Icon:</label>
-                    <select id="entityIcon" required>
-                        <option value="heart">Heart</option>
-                        <option value="star">Star</option>
-                        <option value="alert">Alert</option>
-                        <option value="user">User</option>
-                    </select><br><br>
-
-                    <label for="entityLat">Latitude:</label>
-                    <input type="number" id="entityLat" step="0.0001" required><br><br>
-
-                    <label for="entityLong">Longitude:</label>
-                    <input type="number" id="entityLong" step="0.0001" required><br><br>
-
-                    <button type="submit">Create Entity</button>
-                </form>
-            </div>
-        </div>
-    </div>
-    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-    <script type="text/javascript" src="mapScript.js"></script>
-<!--    <script type="text/javascript" src="/qwebchannel.js"></script>-->
+    <h1>Qt WebChannel Example</h1>
+    <button onclick="sendMessage()">Send Message to C++</button>
 </body>
 </html>
