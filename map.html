@@ -19,10 +19,11 @@
             <li><strong>Arrow Keys:</strong> Move Plane</li>
         </ul>
         <div id="map-actions">
-            <li><button id="scroll" class="active">Scroll</button>
-            <li><button id="add-point">Add Point</button>
-            <li><button id="draw-line">Draw Line</button>
-            <li><button id="remove-point">Remove Point</button>
+            <li><button id="scroll" class="active">Scroll</button></li>
+            <li><button id="add-point">Add Point</button></li>
+            <li><button id="demo-entities">Demo Entities</button></li>
+            <li><button id="draw-line">Draw Line</button></li>
+            <li><button id="remove-point">Remove Point</button></li>
         </div>
         <div id="map-mode-toggle">
             <label for="map-mode">Map Type:</label>
@@ -34,6 +35,37 @@
         </div>
         <div id="center-toggle">
             <button id="toggle-centre">Centre on Plane</button>
+            <button id="openModal">Create Entity</button>
+        </div>
+        <!-- Modal for Creating Entities -->
+        <div id="entityModal" class="modal">
+            <div class="modal-content">
+                <span class="close">&times;</span>
+                <h2>Create New Entity</h2>
+                <form id="entityForm">
+                    <label for="entityName">Name:</label>
+                    <input type="text" id="entityName" required><br><br>
+
+                    <label for="entityId">ID:</label>
+                    <input type="text" id="entityId" required><br><br>
+
+                    <label for="entityIcon">Icon:</label>
+                    <select id="entityIcon" required>
+                        <option value="heart">Heart</option>
+                        <option value="star">Star</option>
+                        <option value="alert">Alert</option>
+                        <option value="user">User</option>
+                    </select><br><br>
+
+                    <label for="entityLat">Latitude:</label>
+                    <input type="number" id="entityLat" step="0.0001" required><br><br>
+
+                    <label for="entityLong">Longitude:</label>
+                    <input type="number" id="entityLong" step="0.0001" required><br><br>
+
+                    <button type="submit">Create Entity</button>
+                </form>
+            </div>
         </div>
     </div>
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
