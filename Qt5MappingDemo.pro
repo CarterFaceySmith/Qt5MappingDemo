@@ -1,4 +1,4 @@
-QT += quick core gui webenginewidgets
+QT += quick core gui webenginewidgets webchannel
 
 # You can make your code fail to compile if it uses deprecated APIs.
 # In order to do so, uncomment the following line.
@@ -7,6 +7,7 @@ QT += quick core gui webenginewidgets
 SOURCES += \
         Entity.cpp \
         EntityManager.cpp \
+        Foo.cpp \
         main.cpp
 
 RESOURCES += qml.qrc
@@ -28,4 +29,5 @@ DISTFILES += \
 
 HEADERS += \
     Entity.h \
-    EntityManager.h
+    EntityManager.h \
+    Foo.h

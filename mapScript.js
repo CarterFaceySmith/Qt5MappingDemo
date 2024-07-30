@@ -1,5 +1,5 @@
 // Access the QML/C++ EntityManager object hopefully
-const entityManager = Qt.binding(function() { return entityManager; });
+// const entityManager = Qt.binding(function() { return entityManager; });
 
 const icons = {
     user: L.divIcon({
@@ -61,24 +61,11 @@ function listAllEntities() {
     return entities;
 }
 
-// Example usage
-console.log('All Entities:');
-console.log(listAllEntities());
-
-console.log('\nRetrieving Entity with UID UID002:');
-const entity = getEntityByUID('UID002');
-if (entity) {
-    console.log(`Name: ${entity.name}`);
-    console.log(`UID: ${entity.UID}`);
-    console.log(`Radius: ${entity.radius}`);
-    console.log(`Latitude: ${entity.latitude}`);
-    console.log(`Longitude: ${entity.longitude}`);
-} else {
-    console.log('Entity not found.');
-}
-
 document.addEventListener("DOMContentLoaded", function() {
     const map = L.map('map').setView([-37.814, 144.963], 13); // Melbourne
+
+    // var webExchange;
+    // webExchange = new QWebChannel;
 
     let currentBaseLayer;
 
@@ -254,32 +241,6 @@ document.addEventListener("DOMContentLoaded", function() {
             modal.style.display = "none";
         }
     }
-
-    document.getElementById('entityForm').addEventListener('submit', function(event) {
-        event.preventDefault();
-
-        const name = document.getElementById('entityName').value;
-        const id = document.getElementById('entityId').value;
-        const iconType = document.getElementById('entityIcon').value;
-        const lat = parseFloat(document.getElementById('entityLat').value);
-        const long = parseFloat(document.getElementById('entityLong').value);
-
-        const entity = createEntity(name, id, icons[iconType], 700, lat, long);
-        database.push(entity);
-
-        L.marker([lat, long], { icon: entity.icon }).addTo(map);
-        L.circle([lat, long], {
-                     radius: 3000,
-                     color: '#FF0000',
-                     weight: 2,
-                     opacity: 0.5,
-                     fillOpacity: 0.1
-                 }).addTo(map);
-
-        // Hide the modal and clear the form
-        modal.style.display = "none";
-        document.getElementById('entityForm').reset();
-    });
 
     document.addEventListener('keydown', function(event) {
         const step = 0.001; // Adjust step size

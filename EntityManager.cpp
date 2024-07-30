@@ -32,7 +32,6 @@ Entity* EntityManager::getEntityByUID(const QString &UID) const
 
 void EntityManager::updateEntityId(const QString &newId) {
     qDebug() << "Updating entity ID to:" << newId;
-    // Your update logic here
 }
 
 QList<QVariantMap> EntityManager::listAllEntities() const
