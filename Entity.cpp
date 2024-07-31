@@ -2,7 +2,7 @@
 #include <QDebug>
 
 Entity::Entity(QObject *parent)
-    : QObject(parent), m_radius(0), m_latitude(0.0), m_longitude(0.0)
+    : QObject(parent), m_name("Unknown"), m_type(entityType::UNKNOWN), m_UID("UKN"), m_speed(0.0), m_radius(0.0), m_altitude(0.0), m_latitude(0.0), m_longitude(0.0)
 {
 }
 
@@ -19,6 +19,19 @@ void Entity::setName(const QString &name)
     }
 }
 
+entityType Entity::type() const
+{
+    return m_type;
+}
+
+void Entity::setType(const entityType &type)
+{
+    if (m_type != type) {
+        m_type = type;
+        emit typeChanged();
+    }
+}
+
 QString Entity::UID() const
 {
     return m_UID;
@@ -32,25 +45,38 @@ void Entity::setUID(const QString &UID)
     }
 }
 
-// QPixmap Entity::icon() const
-// {
-//     return m_icon;
-// }
-
-// void Entity::setIcon(const QPixmap &icon)
-// {
-//     if (m_icon != icon) {
-//         m_icon = icon;
-//         emit iconChanged();
-//     }
-// }
-
-int Entity::radius() const
+double Entity::speed() const
 {
     return m_radius;
 }
 
-void Entity::setRadius(int radius)
+void Entity::setSpeed(double speed)
+{
+    if (m_speed != speed) {
+        m_speed = speed;
+        emit speedChanged();
+    }
+}
+
+double Entity::altitude() const
+{
+    return m_altitude;
+}
+
+void Entity::setAltitude(double altitude)
+{
+    if (m_altitude != altitude) {
+        m_altitude = altitude;
+        emit altitudeChanged();
+    }
+}
+
+double Entity::radius() const
+{
+    return m_radius;
+}
+
+void Entity::setRadius(double radius)
 {
     if (m_radius != radius) {
         m_radius = radius;
