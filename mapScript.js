@@ -1,16 +1,18 @@
-// class Entity {
-//     constructor(name, UID, radius) {
-//         this.name = name;
-//         this.UID = UID;
-//         this.radius = radius;
-//     }
+let qtObject = new QtObject;
 
-//     getName() { return this.name; }
-//     getUID() { return this.UID; }
-//     getRadius() { return this.radius; }
-// }
+function initialiseWebChannel() {
+    new QWebChannel(qt.webChannelTransport, function(channel) {
+        qtObject = channel.objects.myObject;
+    });
+}
 
-// No need to define class explicitly?
+function sendMessage() {
+    if (qtObject) {
+        qtObject.doSomething(42); // Call C++ slot
+    } else {
+        console.error("QtObject is not initialized.");
+    }
+}
 
 const icons = {
     user: L.divIcon({
@@ -80,46 +82,6 @@ database.push(createEntity('Entity1', 'UID001', icons.heart, 700, -37.804, 144.9
 database.push(createEntity('Entity2', 'UID002', icons.star, 700, -37.824, 144.933));
 database.push(createEntity('Entity3', 'UID003', icons.alert, 700, -37.844, 144.953));
 
-// Function to retrieve an entity by UID
-function getEntityByUID(UID) {
-  return database.find(entity => entity.getUID() === UID);
-}
-
-// Function to list all entities
-function listAllEntities() {
-  return database.map(entity => ({
-    Name: entity.getName(),
-    UID: entity.getUID(),
-    Radius: entity.getRadius(),
-    Latitude: entity.getLat(),
-    Longitude: entity.getLong()
-  }));
-}
-
-// Example usage
-console.log('All Entities:');
-console.log(listAllEntities());
-
-console.log('\nRetrieving Entity with UID UID002:');
-const entity = getEntityByUID('UID002');
-if (entity) {
-  console.log(`Name: ${entity.getName()}`);
-  console.log(`UID: ${entity.getUID()}`);
-  console.log(`Radius: ${entity.getRadius()}`);
-  console.log(`Latitude: ${entity.getLat()}`);
-  console.log(`Longitude: ${entity.getLong()}`);
-} else {
-  console.log('Entity not found.');
-}
-
-/*
-JS Factory Pattern Usage:
-// Creating an instance
-const entity1 = createEntity('Carter', 'XYZ123', 70);
-
-// Accessing properties
-console.log(person3.getName()); // Output: Carter
-*/
 
 document.addEventListener("DOMContentLoaded", function() {
     const map = L.map('map').setView([-37.814, 144.963], 13); // Melbourne
@@ -354,5 +316,9 @@ document.addEventListener("DOMContentLoaded", function() {
     document.getElementById('toggle-centre').addEventListener('click', function() {
         autoCentreOnPlane = !autoCentreOnPlane;
         this.classList.toggle('active', autoCentreOnPlane);
+    });
+
+    document.getElementById('message-cpp').addEventListener('click', function() {
+        sendMessage();
     });
 });
