@@ -1,4 +1,5 @@
 #include "Entity.h"
+#include <QDebug>
 
 Entity::Entity(QObject *parent)
     : QObject(parent), m_radius(0), m_latitude(0.0), m_longitude(0.0)
@@ -81,4 +82,9 @@ void Entity::setLongitude(double longitude)
         m_longitude = longitude;
         emit longitudeChanged();
     }
+}
+
+void Entity::doSomething(int value)
+{
+    qDebug() << "doSomething called with value:" << value;
 }

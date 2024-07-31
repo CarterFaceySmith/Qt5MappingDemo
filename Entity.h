@@ -2,7 +2,6 @@
 #define ENTITY_H
 
 #include <QObject>
-#include <QPixmap>
 #include <QString>
 
 class Entity : public QObject
@@ -10,7 +9,6 @@ class Entity : public QObject
     Q_OBJECT
     Q_PROPERTY(QString name READ name WRITE setName NOTIFY nameChanged)
     Q_PROPERTY(QString UID READ UID WRITE setUID NOTIFY UIDChanged)
-    // Q_PROPERTY(QPixmap icon READ icon WRITE setIcon NOTIFY iconChanged)
     Q_PROPERTY(int radius READ radius WRITE setRadius NOTIFY radiusChanged)
     Q_PROPERTY(double latitude READ latitude WRITE setLatitude NOTIFY latitudeChanged)
     Q_PROPERTY(double longitude READ longitude WRITE setLongitude NOTIFY longitudeChanged)
@@ -24,9 +22,6 @@ public:
     QString UID() const;
     void setUID(const QString &UID);
 
-    // QPixmap icon() const;
-    // void setIcon(const QPixmap &icon);
-
     int radius() const;
     void setRadius(int radius);
 
@@ -36,10 +31,12 @@ public:
     double longitude() const;
     void setLongitude(double longitude);
 
+public slots:
+    void doSomething(int value);
+
 signals:
     void nameChanged();
     void UIDChanged();
-    // void iconChanged();
     void radiusChanged();
     void latitudeChanged();
     void longitudeChanged();
@@ -47,7 +44,6 @@ signals:
 private:
     QString m_name;
     QString m_UID;
-    // QPixmap m_icon;
     int m_radius;
     double m_latitude;
     double m_longitude;

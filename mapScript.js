@@ -1,4 +1,4 @@
-let qtObject;
+let qtObject = new QtObject;
 
 function initialiseWebChannel() {
     new QWebChannel(qt.webChannelTransport, function(channel) {
