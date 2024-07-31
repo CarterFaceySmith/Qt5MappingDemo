@@ -1,16 +1,42 @@
-let qtObject = new QtObject;
+var webExchange;
+
+window.onload = function() {
+    new QWebChannel(qt.webChannelTransport, function(channel) {
+        // all published objects are available in channel.objects under
+        // the identifier set in their attached WebChannel.id property
+        webExchange = channel.objects.webExchange;
+
+        webExchange.onQmlButtonPressedChanged.connect(function(message) {
+            document.getElementById("p3").innerHTML = "QML Button Down State: " + webExchange.qmlButtonPressed; // Call C++ slot
+           document.getElementById("p3").innerHTML = "QML Button Down State: " + qtEntityManager.createEntity('Carter', 'ID001', 700, -34.4, 144.5); // Call C++ slot
+        });
+
+        webExchange.pressQmlButton.connect(function(message) {
+            document.getElementById("p2").innerHTML = "QML Button was Pressed";
+        });
+
+        webExchange.releaseQmlButton.connect(function(message) {
+            document.getElementById("p2").innerHTML = "BUTTON RELEASED";
+            document.getElementById("b1").click(); //emulates a user click on the button in the main page
+        });
+
+        document.getElementById("p1").innerHTML = "Initialisation Complete"
+    });
+ }
+
+let qtEntityManager;
 
 function initialiseWebChannel() {
     new QWebChannel(qt.webChannelTransport, function(channel) {
-        qtObject = channel.objects.myObject;
+        qtEntityManager = channel.objects.EntityManager;
     });
 }
 
 function sendMessage() {
-    if (qtObject) {
-        qtObject.doSomething(42); // Call C++ slot
+    if (qtEntityManager) {
+        qtEntityManager.createEntity('Carter', 'ID001', 700, -34.4, 144.5); // Call C++ slot
     } else {
-        console.error("QtObject is not initialized.");
+        console.error("qtEntityManager is not initialised.");
     }
 }
 

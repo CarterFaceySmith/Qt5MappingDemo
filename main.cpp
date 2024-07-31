@@ -13,35 +13,27 @@ int main(int argc, char *argv[])
     // Create and configure the WebChannel
     QWebChannel *webChannel = new QWebChannel;
 
-    // Create and configure the WebEngineView
+    // Create the WebEngineView but do not show it directly
     QWebEngineView *view = new QWebEngineView;
     view->page()->setWebChannel(webChannel);
     view->setUrl(QUrl("qrc:/map.html"));
-    view->show();
 
     QQmlApplicationEngine engine;
     EntityManager entityManager;
+    Entity entity;
 
-
-    // auto m_pView = new QWebEngineView(this);
-    // QWebChannel * channel = new QWebChannel(page);
-    // m_pView->page()->setWebChannel(channel);
-    // channel->registerObject(QString("entity"), this);
-
+    // Register WebChannel and objects for QML
     webChannel->registerObject("EntityManager", &entityManager);
+    webChannel->registerObject("Entity", &entity);
+    engine.rootContext()->setContextProperty("webView", view);
 
+    // Load the QML file
+    engine.load(QUrl(QStringLiteral("qrc:///main.qml")));
 
-    qmlRegisterType<Entity>("Qt5MappingDemo", 1, 0, "Entity");
-    qmlRegisterType<EntityManager>("Qt5MappingDemo", 1, 0, "EntityManager");
-
-
-    engine.rootContext()->setContextProperty("EntityManager", &entityManager);
-
-    const QUrl url(QStringLiteral("qrc:///main.qml"));
-    engine.load(url);
-
+    // Check if the QML file loaded successfully
     if (engine.rootObjects().isEmpty())
         return -1;
 
+    // Execute the application
     return app.exec();
 }
