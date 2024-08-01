@@ -33,6 +33,15 @@ Window {
         webChannel: channel
     }
 
+    /* Developer Note:
+       This is annoying, it seems like you shouldn't have to write these wrapper functions to expose internal C++
+       functions to JS, since the exposure of the C++ class to the QML application should do that anyway.
+       Maybe I'm an idiot, maybe it's a syntax error, not sure.
+
+       Current thinking is to have the entityManager handle being in here with defined interface functions, and
+       only interact with entities by way of the manager.
+       E.g. JS calls entityManager.em_GetEntityByUUID("UID001").<Some entity internal C++ function>
+    */
     QtObject {
         id: entityManagerQt
         WebChannel.id: "entityManagerQt"
