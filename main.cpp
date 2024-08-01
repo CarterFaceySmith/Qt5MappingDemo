@@ -13,12 +13,12 @@ int main(int argc, char *argv[])
     QQmlApplicationEngine engine;
 
     // Create instances of the C++ classes
-    Entity myEntity;
-    EntityManager myEntityManager;
+    Entity entity;
+    EntityManager entityManager;
 
     // Expose the objects to QML
-    engine.rootContext()->setContextProperty("myEntity", &myEntity);
-    engine.rootContext()->setContextProperty("myEntityManager", &myEntityManager);
+    engine.rootContext()->setContextProperty("entity", &entity);
+    engine.rootContext()->setContextProperty("entityManager", &entityManager);
 
     // Load the QML file
     engine.load(QUrl(QStringLiteral("qrc:/main.qml")));

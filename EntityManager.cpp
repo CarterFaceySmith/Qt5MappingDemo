@@ -49,6 +49,6 @@ QList<QVariantMap> EntityManager::listAllEntities() const
     return result;
 }
 
-void EntityManager::logMessage(const QString &message) {
+void EntityManager::logMessageEM(const QString &message) {
     qDebug() << "EntityManager logged message: " << message;
 }

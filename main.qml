@@ -8,18 +8,19 @@ Window {
     visible: true
     width: 800
     height: 600
-    title: "Simple Map Demo"
+    title: "Qt5 WebChannel Mapping Demo"
 
     WebEngineView {
         id: webView
         anchors.fill: parent
         url: "qrc:///map.html"
 
+        // FIXME: Temporary removal for build debugging
         // onLoadingChanged: {
         //     if (loadRequest.status === WebEngineLoadRequest.LoadSucceededStatus) {
-        //         console.log("Loading successful!")
+        //         console.log("QML WebEngine loaded successfully.")
         //     } else {
-        //         console.log("Loading failed!")
+        //         console.log("QML WebEngine failed to load.")
         //     }
         // }
 
@@ -33,14 +34,23 @@ Window {
     }
 
     QtObject {
-        id: backend
-        WebChannel.id: "backend"
+        id: entityManager
+        WebChannel.id: "entityManager"
 
-        // Function to be called from JS
+        // Functions to be called from JS
         function showAlert(message) {
             console.log("Received message from HTML: " + message);
-            myEntity.logMessage("Forwarded from HTML to Entity: " + message);  // Call method in entity
-            myEntityManager.logMessage("Forwarded from HTML to EM: " + message);  // Call method in entity manager
+            entityManager.logMessageEM("Forwarded from HTML to EM: " + message);  // Call method in entity manager
         }
+    }
+
+    QtObject {
+        id: entity
+        WebChannel.id: "entity"
+    }
+
+    QtObject {
+        id: backend
+        WebChannel.id: "backend"
     }
 }
