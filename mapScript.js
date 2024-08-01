@@ -1,4 +1,6 @@
 /* ----------------------------- WEBCHANNEL ----------------------------- */
+var entityManager;
+
 function initWebChannel(channel) {
     entityManager = channel.objects.entityManager;
     // entity = channel.objects.entityQt;
@@ -27,13 +29,13 @@ function createEntity() {
     if (entityManager) {
         var name = document.getElementById("name").value.trim();
         var UID = document.getElementById("UID").value.trim();
-        var radius = parseFloat(document.getElementById("radius").value);
-        var latitude = parseFloat(document.getElementById("latitude").value);
-        var longitude = parseFloat(document.getElementById("longitude").value);
+        var radius = parseFloat(document.getElementById("radius").value.trim());
+        var latitude = parseFloat(document.getElementById("latitude").value.trim());
+        var longitude = parseFloat(document.getElementById("longitude").value.trim());
 
-        var entity = entityManager.createEntity(name, UID, radius, latitude, longitude);
-        if (entity) {
-            alert("Entity created with name: " + entity.name);
+        var newEntity = entityManager.createEntity(name, UID, radius, latitude, longitude);
+        if (newEntity) {
+            alert("Entity created with name: " + name);
         } else {
             alert("Failed to create entity.");
         }
@@ -45,7 +47,7 @@ function getEntityByUID() {
         var UID = document.getElementById("UID").value.trim();
         var entity = entityManager.getEntityByUID(UID);
         if (entity) {
-            alert("Entity found with name: " + entity.name);
+            alert("Entity found with UID: " + UID);
         } else {
             alert("Entity not found.");
         }
@@ -54,20 +56,21 @@ function getEntityByUID() {
 
 function updateEntityId() {
     if (entityManager) {
+        var currentId = document.getElementById("UID").value.trim();
         var newId = document.getElementById("newId").value.trim();
-        entityManager.updateEntityId(newId);
+        entityManager.updateEntityId(currentId, newId);
         alert("Entity ID updated to: " + newId);
     }
 }
 
-function listAllEntities() {
-    if (entityManager) {
-        var entities = entityManager.listAllEntities();
-        entities.forEach(function(entity) {
-            console.log("Entity - Name: " + entity.Name + ", UID: " + entity.UID);
-        });
-    }
-}
+// function listAllEntities() {
+//     if (entityManager) {
+//         var entities = entityManager.listAllEntities();
+//         entities.forEach(function(entity) {
+//             console.log("Entity - Name: " + entity.Name + ", UID: " + entity.UID);
+//         });
+//     }
+// }
 
 function logMessage() {
     if (entityManager) {
@@ -160,15 +163,14 @@ document.addEventListener("DOMContentLoaded", function() {
     const markersLayer = L.layerGroup().addTo(map);
     const linesLayer = L.layerGroup().addTo(map);
 
-    // database.forEach(entity => {
-    //     L.marker([entity.lat, entity.long], { icon: entity.icon }).addTo(map);
+    // var entityList = entityManager.listAllEntities();
 
-    //     L.circle([entity.lat, entity.long], {
+    // entityList.forEach(entity => {
+    //     L.marker([entity.latitude, entity.longitude], icons.star).addTo(map);
+
+    //     L.circle([entity.latitude, entity.longitude], {
     //         radius: 3000,
-    //         color: entity.icon.options.html.includes('red') ? '#FF0000' :
-    //         entity.icon.options.html.includes('blue') ? '#0000FF' :
-    //         entity.icon.options.html.includes('green') ? '#00FF00' :
-    //         '#800080',
+    //         color: '#FF0000',
     //         weight: 2,
     //         opacity: 0.5,
     //         fillOpacity: 0.1

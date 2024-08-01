@@ -6,8 +6,8 @@ import QtQuick.Window 2.14
 
 Window {
     visible: true
-    width: 800
-    height: 600
+    width: 1024
+    height: 800
     title: "Qt5 WebChannel JavaScript/C++ Map Demo"
 
     WebEngineView {
@@ -48,37 +48,19 @@ Window {
         WebChannel.id: "entityManager"
 
         function createEntity(name, UID, radius, latitude, longitude) {
-            if (entityManager) {
-                var entity = entityManager.createEntity(name, UID, radius, latitude, longitude);
-                return entity;
-            }
-            return null;
+            return entityManager.createEntity(name, UID, radius, latitude, longitude);
         }
 
         function getEntityByUID(UID) {
-            if (entityManager) {
-                return entityManager.getEntityByUID(UID);
-            }
-            return null;
+            return entityManager.getEntityByUID(UID);
         }
 
-        function updateEntityId(newId) {
-            if (entityManager) {
-                entityManager.updateEntityId(newId);
-            }
-        }
-
-        function listAllEntities() {
-            if (entityManager) {
-                return entityManager.listAllEntities();
-            }
-            return [];
+        function updateEntityId(currentId, newId) {
+            entityManager.updateEntityId(currentId, newId);
         }
 
         function logMessage(message) {
-            if (entityManager) {
-                entityManager.logMessage(message);
-            }
+            entityManager.logMessage(message);
         }
     }
 

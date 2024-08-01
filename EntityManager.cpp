@@ -17,6 +17,7 @@ Entity* EntityManager::createEntity(const QString &name, const QString &UID, dou
     entity->setLongitude(longitude);
 
     m_database.append(entity);
+    qDebug() << "Created entity with name " << name << " and UID " << UID;
     return entity;
 }
 
@@ -24,30 +25,39 @@ Entity* EntityManager::getEntityByUID(const QString &UID) const
 {
     for (Entity *entity : m_database) {
         if (entity->UID() == UID) {
+            qDebug() << "Found entity ID:" << UID;
             return entity;
         }
     }
+    qDebug() << "Couldn't find entity ID:" << UID;
     return nullptr;
 }
 
-void EntityManager::updateEntityId(const QString &newId) {
-    qDebug() << "Updating entity ID to:" << newId;
+void EntityManager::updateEntityId(const QString &currentId, const QString &newId)
+{
+    for (Entity *entity : m_database) {
+        if (entity->UID() == currentId) {
+            entity->setUID(newId);
+            qDebug() << "Updated entity ID to:" << newId;
+        }
+        qDebug() << "No matching UID found for UID: " << currentId;
+    }
 }
 
-QList<QVariantMap> EntityManager::listAllEntities() const
-{
-    QList<QVariantMap> result;
-    for (const Entity *entity : m_database) {
-        QVariantMap entityMap;
-        entityMap["Name"] = entity->name();
-        entityMap["UID"] = entity->UID();        
-        entityMap["Radius"] = entity->radius();
-        entityMap["Latitude"] = entity->latitude();
-        entityMap["Longitude"] = entity->longitude();
-        result.append(entityMap);
-    }
-    return result;
-}
+// QList<QVariantMap> EntityManager::listAllEntities() const
+// {
+//     QList<QVariantMap> result;
+//     for (const Entity *entity : m_database) {
+//         QVariantMap entityMap;
+//         entityMap["Name"] = entity->name();
+//         entityMap["UID"] = entity->UID();
+//         entityMap["Radius"] = entity->radius();
+//         entityMap["Latitude"] = entity->latitude();
+//         entityMap["Longitude"] = entity->longitude();
+//         result.append(entityMap);
+//     }
+//     return result;
+// }
 
 void EntityManager::logMessage(const QString &message) {
     qDebug() << "EntityManager logged message: " << message;

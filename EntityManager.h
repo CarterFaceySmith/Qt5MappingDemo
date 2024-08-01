@@ -15,13 +15,14 @@ public:
 public slots:
     Entity* createEntity(const QString &name, const QString &UID, double radius, double latitude, double longitude);
     Entity* getEntityByUID(const QString &UID) const;
-    void updateEntityId(const QString &newId);
-    QList<QVariantMap> listAllEntities() const;
+    void updateEntityId(const QString &currentId, const QString &newId);
+    // QList<QVariantMap> listAllEntities() const;
     void logMessage(const QString &message);
 
 signals:
     void entityCreated(Entity* entity);
     void entityUpdated(Entity* entity);
+
 private:
     QList<Entity*> m_database;
 };
