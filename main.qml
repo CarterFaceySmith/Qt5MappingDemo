@@ -1,53 +1,46 @@
 import QtQuick 2.15
-import QtQuick.Window 2.15
-import QtLocation 5.6
-import QtPositioning 5.6
+import QtQuick.Controls 2.15
+import QtWebEngine 1.10
+import QtWebChannel 1.0
+import QtQuick.Window 2.14
 
 Window {
-    width: 640
-    height: 480
-    title: qsTr("Qt5 Mapping Demo")
     visible: true
+    width: 800
+    height: 600
+    title: "Simple Map Demo"
 
-    Plugin {
-        id: osmPlugin
-        name: "osm"
+    WebEngineView {
+        id: webView
+        anchors.fill: parent
+        url: "qrc:///map.html"
+
+        // onLoadingChanged: {
+        //     if (loadRequest.status === WebEngineLoadRequest.LoadSucceededStatus) {
+        //         console.log("Loading successful!")
+        //     } else {
+        //         console.log("Loading failed!")
+        //     }
+        // }
+
+        // Set up the WebChannel and register objects
+        WebChannel {
+            id: channel
+            registeredObjects: [backend]
+        }
+
+        webChannel: channel
     }
 
-    Map {
-        id: map
-        anchors.fill: parent
-        plugin: osmPlugin
-        center: QtPositioning.coordinate(-37.8140, 144.9632) // Melbourne
-        zoomLevel: 12
+    QtObject {
+        id: backend
+        WebChannel.id: "backend"
 
-        MapCircle {
-            center: QtPositioning.coordinate(-37.8140, 144.9632) // Melbourne
-            radius: 500 // metres
-            color: "blue"
+        // Function to be called from JS
+        function showAlert(message) {
+            console.log("Received message from HTML: " + message);
+            myEntity.logMessage("Forwarded from HTML to Entity: " + message);  // Call method in entity
+            myEntityManager.logMessage("Forwarded from HTML to EM: " + message);  // Call method in entity manager
         }
-
-        MapCircle {
-            center: QtPositioning.coordinate(-37.8255, 144.9701) // Another location
-            radius: 300 // metres
-            color: "red"
-        }
-
-        MapCircle {
-            center: QtPositioning.coordinate(-37.8053, 144.9578) // Another location
-            radius: 700 // metres
-            color: "green"
-        }
-
-        // Sketchy interaction - jumpy
-        MouseArea {
-                    anchors.fill: parent
-                    drag.target: map
-
-                    // Panning (dragging to move the map)
-                    onPositionChanged: {
-                        map.center = map.toCoordinate(Qt.point(mouse.x, mouse.y));
-                    }
-                }
     }
 }
