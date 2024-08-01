@@ -17,6 +17,7 @@ public slots:
     Entity* getEntityByUID(const QString &UID) const;
     void updateEntityId(const QString &currentId, const QString &newId);
     // QList<QVariantMap> listAllEntities() const;
+    void printAllEntities();
     void logMessage(const QString &message);
 
 signals:

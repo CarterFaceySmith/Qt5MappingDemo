@@ -44,20 +44,17 @@ void EntityManager::updateEntityId(const QString &currentId, const QString &newI
     }
 }
 
-// QList<QVariantMap> EntityManager::listAllEntities() const
-// {
-//     QList<QVariantMap> result;
-//     for (const Entity *entity : m_database) {
-//         QVariantMap entityMap;
-//         entityMap["Name"] = entity->name();
-//         entityMap["UID"] = entity->UID();
-//         entityMap["Radius"] = entity->radius();
-//         entityMap["Latitude"] = entity->latitude();
-//         entityMap["Longitude"] = entity->longitude();
-//         result.append(entityMap);
-//     }
-//     return result;
-// }
+
+void EntityManager::printAllEntities()
+{
+    for (const Entity *entity : m_database) {
+        qDebug() << "Entity Name:" << entity->name();
+        qDebug() << "Entity UID:" << entity->UID();
+        qDebug() << "Entity Radius:" << entity->radius();
+        qDebug() << "Entity Lat:" << entity->latitude();
+        qDebug() << "Entity Long:" << entity->longitude();
+    }
+}
 
 void EntityManager::logMessage(const QString &message) {
     qDebug() << "EntityManager logged message: " << message;

@@ -51,6 +51,10 @@ Window {
             return entityManager.createEntity(name, UID, radius, latitude, longitude);
         }
 
+        function printAllEntities(){
+            entityManager.printAllEntities();
+        }
+
         function getEntityByUID(UID) {
             return entityManager.getEntityByUID(UID);
         }

@@ -1,3 +1,5 @@
+var map;
+
 /* ----------------------------- WEBCHANNEL ----------------------------- */
 var entityManager;
 
@@ -8,6 +10,29 @@ function initWebChannel(channel) {
 
 window.onload = function() {
     var channel = new QWebChannel(qt.webChannelTransport, initWebChannel);
+    /* ----------------------------- MAP SETUP ----------------------------- */
+    map = L.map('map').setView([-37.814, 144.963], 13); // Melbourne
+    let currentBaseLayer;
+
+    function updateTileLayer(layerType) {
+        if (currentBaseLayer) {
+            map.removeLayer(currentBaseLayer);
+        }
+
+        const tileLayers = {
+            osm: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+            'stamen-terrain': 'https://tiles.stadiamaps.com/tiles/stamen_terrain/{z}/{x}/{y}{r}.png?api_key=5a677b5d-7b56-450a-b358-2d5a5a8af829',
+            'carto-light': 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png'
+        };
+
+        currentBaseLayer = L.tileLayer(tileLayers[layerType], {
+                                           attribution: layerType === 'osm'
+                                                        ? '© OpenStreetMap contributors'
+                                                        : '© OpenStreetMap contributors, © Stamen Design, © CartoDB'
+                                       }).addTo(map);
+    }
+
+    updateTileLayer('osm'); // Default map layer
 };
 
 // function logMessage() {
@@ -25,6 +50,14 @@ window.onload = function() {
 //     }
 // }
 
+function placeMarkerForEntity(entity) {
+    if (entity && entity.latitude !== undefined && entity.longitude !== undefined) {
+        console.log("Adding entity marker at lat: " + entity.latitude + " long: " + entity.longitude);
+        const latlng = L.latLng(entity.latitude, entity.longitude);
+        L.marker(latlng, { icon: icons.star }).addTo(map);
+    }
+}
+
 function createEntity() {
     if (entityManager) {
         var name = document.getElementById("name").value.trim();
@@ -36,6 +69,7 @@ function createEntity() {
         var newEntity = entityManager.createEntity(name, UID, radius, latitude, longitude);
         if (newEntity) {
             alert("Entity created with name: " + name);
+            placeMarkerForEntity(newEntity); // Place marker for the fetched entity
         } else {
             alert("Failed to create entity.");
         }
@@ -46,8 +80,9 @@ function getEntityByUID() {
     if (entityManager) {
         var UID = document.getElementById("UID").value.trim();
         var entity = entityManager.getEntityByUID(UID);
-        if (entity) {
+        if (entity.UID !== "") {
             alert("Entity found with UID: " + UID);
+            placeMarkerForEntity(entity); // Place marker for the fetched entity
         } else {
             alert("Entity not found.");
         }
@@ -60,6 +95,15 @@ function updateEntityId() {
         var newId = document.getElementById("newId").value.trim();
         entityManager.updateEntityId(currentId, newId);
         alert("Entity ID updated to: " + newId);
+    }
+}
+
+function printAllEntities() {
+    if (entityManager) {
+        entityManager.printAllEntities();
+    }
+    else {
+        alert("No entities in database.");
     }
 }
 
@@ -124,31 +168,6 @@ const icons = {
 
 /* ----------------------------- MAIN FUNCTION ----------------------------- */
 document.addEventListener("DOMContentLoaded", function() {
-
-    /* ----------------------------- MAP SETUP ----------------------------- */
-    const map = L.map('map').setView([-37.814, 144.963], 13); // Melbourne
-
-    let currentBaseLayer;
-
-    function updateTileLayer(layerType) {
-        if (currentBaseLayer) {
-            map.removeLayer(currentBaseLayer);
-        }
-
-        const tileLayers = {
-            osm: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
-            'stamen-terrain': 'https://tiles.stadiamaps.com/tiles/stamen_terrain/{z}/{x}/{y}{r}.png?api_key=5a677b5d-7b56-450a-b358-2d5a5a8af829',
-            'carto-light': 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png'
-        };
-
-        currentBaseLayer = L.tileLayer(tileLayers[layerType], {
-                                           attribution: layerType === 'osm'
-                                                        ? '© OpenStreetMap contributors'
-                                                        : '© OpenStreetMap contributors, © Stamen Design, © CartoDB'
-                                       }).addTo(map);
-    }
-
-    updateTileLayer('osm'); // Default map layer
 
     /* ----------------------------- VARIABLES ----------------------------- */
     const points = [];
