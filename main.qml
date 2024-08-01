@@ -1,7 +1,7 @@
 import QtQuick 2.15
 import QtQuick.Controls 2.15
-import QtWebEngine 1.10
-import QtWebChannel 1.0
+import QtWebEngine 1.15
+import QtWebChannel 1.15
 import QtQuick.Window 2.14
 
 Window {
@@ -27,7 +27,7 @@ Window {
         // Set up the WebChannel and register objects
         WebChannel {
             id: channel
-            registeredObjects: [entityManagerQt, entityQt]
+            registeredObjects: [entityManagerObject]
         }
 
         webChannel: channel
@@ -42,20 +42,52 @@ Window {
        only interact with entities by way of the manager.
        E.g. JS calls entityManager.em_GetEntityByUUID("UID001").<Some entity internal C++ function>
     */
+    // Expose EntityManager to the JavaScript
     QtObject {
-        id: entityManagerQt
-        WebChannel.id: "entityManagerQt"
+        id: entityManagerObject
+        WebChannel.id: "entityManager"
 
-        // Interface Functions - To be called from JS
-        function em_TransportMessage(message) { entityManager.logMessage("Forwarded from HTML to Entity Manager: " + message); }
+        function createEntity(name, UID, radius, latitude, longitude) {
+            if (entityManager) {
+                var entity = entityManager.createEntity(name, UID, radius, latitude, longitude);
+                return entity;
+            }
+            return null;
+        }
+
+        function getEntityByUID(UID) {
+            if (entityManager) {
+                return entityManager.getEntityByUID(UID);
+            }
+            return null;
+        }
+
+        function updateEntityId(newId) {
+            if (entityManager) {
+                entityManager.updateEntityId(newId);
+            }
+        }
+
+        function listAllEntities() {
+            if (entityManager) {
+                return entityManager.listAllEntities();
+            }
+            return [];
+        }
+
+        function logMessage(message) {
+            if (entityManager) {
+                entityManager.logMessage(message);
+            }
+        }
     }
 
-    QtObject {
-        id: entityQt
-        WebChannel.id: "entityQt"
+    // QtObject {
+    //     id: entityQt
+    //     WebChannel.id: "entityQt"
 
-        // Interface Functions - To be called from JS
-        function e_TransportMessage(message) { entity.logMessage("Forwarded from HTML to Entity: " + message) }
-        function e_radius() { console.log("Entity returned a radius of: " + entity.radius) }
-    }
+    //     // Interface Functions - To be called from JS
+    //     function e_TransportMessage(message) { entity.logMessage("Forwarded from HTML to Entity: " + message) }
+    //     function e_radius() { console.log("Entity returned a radius of: " + entity.radius) }
+    // }
 }

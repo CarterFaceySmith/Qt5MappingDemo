@@ -1,68 +1,122 @@
 /* ----------------------------- WEBCHANNEL ----------------------------- */
 function initWebChannel(channel) {
-    entityManager = channel.objects.entityManagerQt;
-    entity = channel.objects.entityQt;
+    entityManager = channel.objects.entityManager;
+    // entity = channel.objects.entityQt;
 }
 
 window.onload = function() {
     var channel = new QWebChannel(qt.webChannelTransport, initWebChannel);
 };
 
-function logMessage() {
-    if (entity) {
-        entity.e_TransportMessage("Hello from JS frontend!");
-        entity.e_radius();
-    } else {
-        console.log("entity is not available yet.");
-    }
+// function logMessage() {
+//     if (entity) {
+//         entity.e_TransportMessage("Hello from JS frontend!");
+//         entity.e_radius();
+//     } else {
+//         console.log("entity is not available yet.");
+//     }
 
+//     if (entityManager) {
+//         entityManager.em_TransportMessage("Hello from JS frontend!");
+//     } else {
+//         console.log("entityManager is not available yet.");
+//     }
+// }
+
+function createEntity() {
     if (entityManager) {
-        entityManager.em_TransportMessage("Hello from JS frontend!");
-    } else {
-        console.log("entityManager is not available yet.");
+        var name = document.getElementById("name").value.trim();
+        var UID = document.getElementById("UID").value.trim();
+        var radius = parseFloat(document.getElementById("radius").value);
+        var latitude = parseFloat(document.getElementById("latitude").value);
+        var longitude = parseFloat(document.getElementById("longitude").value);
+
+        var entity = entityManager.createEntity(name, UID, radius, latitude, longitude);
+        if (entity) {
+            alert("Entity created with name: " + entity.name);
+        } else {
+            alert("Failed to create entity.");
+        }
+    }
+}
+
+function getEntityByUID() {
+    if (entityManager) {
+        var UID = document.getElementById("UID").value.trim();
+        var entity = entityManager.getEntityByUID(UID);
+        if (entity) {
+            alert("Entity found with name: " + entity.name);
+        } else {
+            alert("Entity not found.");
+        }
+    }
+}
+
+function updateEntityId() {
+    if (entityManager) {
+        var newId = document.getElementById("newId").value.trim();
+        entityManager.updateEntityId(newId);
+        alert("Entity ID updated to: " + newId);
+    }
+}
+
+function listAllEntities() {
+    if (entityManager) {
+        var entities = entityManager.listAllEntities();
+        entities.forEach(function(entity) {
+            console.log("Entity - Name: " + entity.Name + ", UID: " + entity.UID);
+        });
+    }
+}
+
+function logMessage() {
+    if (entityManager) {
+        var message = document.getElementById("logMessage").value.trim();
+        entityManager.logMessage(message);
+        alert("Log message sent: " + message);
     }
 }
 
 /* -------------------------- EXTERNAL VARIABLES --------------------------- */
 const icons = {
     user: L.divIcon({
-        className: 'user-position-icon',
-        html: '<i class="material-icons">flight</i>',
-        iconSize: [24, 24],
-        iconAnchor: [12, 12]
-    }),
+                        className: 'user-position-icon',
+                        html: '<i class="material-icons">flight</i>',
+                        iconSize: [24, 24],
+                        iconAnchor: [12, 12]
+                    }),
     plane: L.divIcon({
-        className: 'user-position-icon',
-        html: '<i class="material-icons">flight</i>',
-        iconSize: [24, 24],
-        iconAnchor: [12, 12],
-        draggable: false
-    }),
+                         className: 'user-position-icon',
+                         html: '<i class="material-icons">flight</i>',
+                         iconSize: [24, 24],
+                         iconAnchor: [12, 12],
+                         draggable: false
+                     }),
     star: L.divIcon({
-        className: 'additional-icon',
-        html: '<i class="material-icons">star</i>',
-        iconSize: [24, 24],
-        iconAnchor: [12, 12],
-        draggable: true // FIXME: Draggable icons not working - potential map layering issue?
-    }),
+                        className: 'additional-icon',
+                        html: '<i class="material-icons">star</i>',
+                        iconSize: [24, 24],
+                        iconAnchor: [12, 12],
+                        draggable: true // FIXME: Draggable icons not working - potential map layering issue?
+                    }),
     heart: L.divIcon({
-        className: 'additional-icon',
-        html: '<i class="material-icons">favorite</i>',
-        iconSize: [24, 24],
-        iconAnchor: [12, 12],
-    }),
+                         className: 'additional-icon',
+                         html: '<i class="material-icons">favorite</i>',
+                         iconSize: [24, 24],
+                         iconAnchor: [12, 12],
+                     }),
     check: L.divIcon({
-        className: 'additional-icon',
-        html: '<i class="material-icons">check</i>',
-        iconSize: [24, 24],
-        iconAnchor: [12, 12],
-    }),
+                         className: 'additional-icon',
+                         html: '<i class="material-icons">check</i>',
+                         iconSize: [24, 24],
+                         iconAnchor: [12, 12],
+                     }),
     alert: L.divIcon({
-        className: 'additional-icon',
-        html: '<i class="material-icons">warning</i>',
-        iconSize: [24, 24],
-        iconAnchor: [12, 12],
-    })
+                         className: 'additional-icon',
+                         html: '<i class="material-icons">warning</i>',
+                         iconSize: [24, 24],
+                         iconAnchor: [12, 12],
+                     })
 };
 
 /* ----------------------------- MAIN FUNCTION ----------------------------- */
@@ -85,10 +139,10 @@ document.addEventListener("DOMContentLoaded", function() {
         };
 
         currentBaseLayer = L.tileLayer(tileLayers[layerType], {
-            attribution: layerType === 'osm'
-                ? '© OpenStreetMap contributors'
-                : '© OpenStreetMap contributors, © Stamen Design, © CartoDB'
-        }).addTo(map);
+                                           attribution: layerType === 'osm'
+                                                        ? '© OpenStreetMap contributors'
+                                                        : '© OpenStreetMap contributors, © Stamen Design, © CartoDB'
+                                       }).addTo(map);
     }
 
     updateTileLayer('osm'); // Default map layer
@@ -135,19 +189,19 @@ document.addEventListener("DOMContentLoaded", function() {
         }
 
         userRing = L.circle(latlng, {
-            radius: 3000, // Radius of the large ring in metres
-            color: '#FF5722', // Orange
-            weight: 2,
-            fillOpacity: 0.15
-        }).addTo(map);
+                                radius: 3000, // Radius of the large ring in metres
+                                color: '#FF5722', // Orange
+                                weight: 2,
+                                fillOpacity: 0.15
+                            }).addTo(map);
 
         userSmallRing = L.circle(latlng, {
-            radius: 1000, // Radius of the small ring in metres
-            color: '#FF5722', // Orange
-            weight: 2,
-            fillOpacity: 0.3,
-            strokeDasharray: '2, 6' // Smaller dotted border attempt - no idea why this is solid
-        }).addTo(map);
+                                     radius: 1000, // Radius of the small ring in metres
+                                     color: '#FF5722', // Orange
+                                     weight: 2,
+                                     fillOpacity: 0.3,
+                                     strokeDasharray: '2, 6' // Smaller dotted border attempt - no idea why this is solid
+                                 }).addTo(map);
 
         userMarker = L.marker(latlng, { icon: icons.plane }).addTo(map);
 
@@ -159,21 +213,21 @@ document.addEventListener("DOMContentLoaded", function() {
     function drawPoints() {
         markersLayer.clearLayers();
         points.forEach((point) => {
-            L.marker([point.lat, point.lon], { draggable: true })
-                .addTo(markersLayer);
-        });
+                           L.marker([point.lat, point.lon], { draggable: true })
+                           .addTo(markersLayer);
+                       });
     }
 
     function drawLines() {
         linesLayer.clearLayers();
         lines.forEach(line => {
-            if (line.start && line.end) {
-                L.polyline([[line.start.lat, line.start.lon], [line.end.lat, line.end.lon]], {
-                    color: 'black',
-                    weight: 2
-                }).addTo(linesLayer);
-            }
-        });
+                          if (line.start && line.end) {
+                              L.polyline([[line.start.lat, line.start.lon], [line.end.lat, line.end.lon]], {
+                                             color: 'black',
+                                             weight: 2
+                                         }).addTo(linesLayer);
+                          }
+                      });
     }
 
     function removePoint(latlng) {
@@ -182,8 +236,8 @@ document.addEventListener("DOMContentLoaded", function() {
 
         // Find index of the point to remove based on distance
         const index = points.findIndex(point => {
-            return Math.hypot(point.lat - latlng.lat, point.lon - latlng.lng) < tolerance;
-        });
+                                           return Math.hypot(point.lat - latlng.lat, point.lon - latlng.lng) < tolerance;
+                                       });
 
         if (index !== -1) {
             // Remove the point
@@ -238,18 +292,18 @@ document.addEventListener("DOMContentLoaded", function() {
         const step = 0.001; // Adjust step size as needed
 
         switch(event.key) {
-            case 'ArrowUp':
-                moveUserPosition(step, 0);
-                break;
-            case 'ArrowDown':
-                moveUserPosition(-step, 0);
-                break;
-            case 'ArrowLeft':
-                moveUserPosition(0, -step);
-                break;
-            case 'ArrowRight':
-                moveUserPosition(0, step);
-                break;
+        case 'ArrowUp':
+            moveUserPosition(step, 0);
+            break;
+        case 'ArrowDown':
+            moveUserPosition(-step, 0);
+            break;
+        case 'ArrowLeft':
+            moveUserPosition(0, -step);
+            break;
+        case 'ArrowRight':
+            moveUserPosition(0, step);
+            break;
         }
     });
 

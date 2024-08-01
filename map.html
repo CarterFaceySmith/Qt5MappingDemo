@@ -36,7 +36,25 @@
             <button id="toggle-centre">Centre on Plane</button>
             <button onclick="logMessage()">Message E and EM in Qt</button>
         </div>
-    </div>S
+        <div>
+        <br>
+        <h3>Qt WebChannel EntityManager</h3>
+        <ul>
+            <li><input type="text" id="name" placeholder="Entity Name">
+            <li><input type="text" id="UID" placeholder="Entity UID">
+            <li><input type="number" id="radius" placeholder="Entity Radius">
+            <li><input type="number" id="latitude" placeholder="Entity Latitude">
+            <li><input type="number" id="longitude" placeholder="Entity Longitude">
+            <li><button onclick="createEntity()">Create Entity</button>
+            <li><button onclick="getEntityByUID()">Get Entity by UID</button>
+            <li><input type="text" id="newId" placeholder="New Entity ID">
+            <li><button onclick="updateEntityId()">Update Entity ID</button>
+            <li><button onclick="listAllEntities()">List All Entities</button>
+            <li><input type="text" id="logMessage" placeholder="Message to Log">
+            <li><button onclick="logMessage()">Log Message</button>
+        </ul>
+        </div>
+    </div>
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
     <script src="qrc:///qtwebchannel/qwebchannel.js"></script>
     <script src="qrc:///mapScript.js"></script>
