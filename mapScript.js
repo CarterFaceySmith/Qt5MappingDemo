@@ -11,7 +11,7 @@ window.onload = function() {
 
 function logMessageJS() {
     if (window.entityManager) {
-        windowentityManager.showAlert("Hello from JS frontend!");
+        window.entityManager.showAlert("Hello from JS frontend!");
     } else {
         console.log("backend is not available yet.");
     }

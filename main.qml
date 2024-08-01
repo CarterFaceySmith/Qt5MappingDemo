@@ -27,7 +27,7 @@ Window {
         // Set up the WebChannel and register objects
         WebChannel {
             id: channel
-            registeredObjects: [backend]
+            registeredObjects: [backend, entityManager, entity]
         }
 
         webChannel: channel
