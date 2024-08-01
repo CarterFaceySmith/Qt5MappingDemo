@@ -27,45 +27,34 @@ Window {
         // Set up the WebChannel and register objects
         WebChannel {
             id: channel
-            registeredObjects: [backend/*, entityManager, entity*/]
+            registeredObjects: [entityManagerQt, entityQt]
         }
 
         webChannel: channel
     }
 
-    // QtObject {
-    //     id: entityManager
-    //     WebChannel.id: "entityManager"
+    QtObject {
+        id: entityManagerQt
+        WebChannel.id: "entityManagerQt"
 
-    //     // Functions to be called from JS
-    //     // function showAlert(message) {
-    //     //     console.log("Received message from HTML: " + message);
-    //     //     entityManagerBackend.logMessageEM("Forwarded from HTML to EM: " + message);  // Call method in entity manager
-    //     // }
-    // }
-
-    // QtObject {
-    //     id: entity
-    //     WebChannel.id: "entity"
-    // }
+        // Interface Functions - To be called from JS
+        function em_TransportMessage(message) { entityManager.logMessage("Forwarded from HTML to Entity Manager: " + message); }
+    }
 
     QtObject {
-        id: backend
-        WebChannel.id: "backend"
+        id: entityQt
+        WebChannel.id: "entityQt"
 
-        function transportMessage(target, message) {
-            console.log("Received message from HTML: " + message);
-            if(target === "entity"){
-                console.log("Entity message received");
-            } else if (target === "entityManager") {
-                console.log("EM message received");
-                entityManager.logMessageEM("Forwarded from HTML to EM: " + message);
-            } else{
-                console.log("Unknown target message received");
-            }
-
-        }
-
-        // function logMessageEM(message) { entityManager.logMessageEM(messsage); }
+        // Interface Functions - To be called from JS
+        function e_TransportMessage(message) { entity.logMessage("Forwarded from HTML to Entity: " + message); }
     }
+
+    // QtObject {
+    //     id: backend
+    //     WebChannel.id: "backend"
+
+
+
+    //     // function logMessageEM(message) { entityManager.logMessageEM(messsage); }
+    // }
 }

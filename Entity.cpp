@@ -112,6 +112,6 @@ void Entity::setLongitude(double longitude)
     }
 }
 
-void Entity::logMessageEntity(const QString &message) {
+void Entity::logMessage(const QString &message) {
     qDebug() << "Entity logged message: " << message;
 }

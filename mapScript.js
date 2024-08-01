@@ -1,26 +1,25 @@
 /* ----------------------------- WEBCHANNEL ----------------------------- */
 function initWebChannel(channel) {
-    // window.entityManager = channel.objects.entityManager;
-    // window.entity = channel.objects.entity;
-    backend = channel.objects.backend;
+    entityManager = channel.objects.entityManagerQt;
+    entity = channel.objects.entityQt;
 }
 
 window.onload = function() {
     var channel = new QWebChannel(qt.webChannelTransport, initWebChannel);
 };
 
-function logMessageJS() {
-    if (backend) {
-        backend.transportMessage("entity", "Hello from JS frontend!");
+function logMessage() {
+    if (entity) {
+        entity.e_TransportMessage("Hello from JS frontend!");
     } else {
-        console.log("backend is not available yet.");
+        console.log("entity is not available yet.");
     }
 
-    // if (window.entity) {
-    //     window.backend.entity.logMessage("Hello from JS frontend!");
-    // } else {
-    //     console.log("entity is not available yet.");
-    // }
+    if (entityManager) {
+        entityManager.em_TransportMessage("Hello from JS frontend!");
+    } else {
+        console.log("entityManager is not available yet.");
+    }
 }
 
 /* -------------------------- EXTERNAL VARIABLES --------------------------- */

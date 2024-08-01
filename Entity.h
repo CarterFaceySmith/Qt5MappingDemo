@@ -60,7 +60,7 @@ public:
     void setLongitude(double longitude);
 
 public slots:
-    void logMessageEntity(const QString &message);
+    void logMessage(const QString &message);
 
 signals:
     void nameChanged();
