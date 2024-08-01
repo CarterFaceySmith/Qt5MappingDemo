@@ -2,7 +2,9 @@
 #include <QDebug>
 
 Entity::Entity(QObject *parent)
-    : QObject(parent), m_name("Unknown"), m_type(entityType::UNKNOWN), m_UID("UKN"), m_speed(0.0), m_radius(0.0), m_altitude(0.0), m_latitude(0.0), m_longitude(0.0)
+    : QObject(parent), m_name("Unknown"), m_type(entityType::UNKNOWN),
+      m_UID("UKN"), m_speed(0.0), m_radius(0.0), m_altitude(0.0),
+      m_latitude(0.0), m_longitude(0.0)
 {
 }
 
@@ -110,7 +112,6 @@ void Entity::setLongitude(double longitude)
     }
 }
 
-void Entity::doSomething(int value)
-{
-    qDebug() << "doSomething called with value:" << value;
+void Entity::logMessage(const QString &message) {
+    qDebug() << "Entity logged message: " << message;
 }

@@ -33,11 +33,12 @@
             </select>
         </div>
         <div id="center-toggle">
-            <button id="toggle-centre">Centre on Plane</button>
-            <button id="message-cpp" type="button">Send Message to C++</button>
+            <button id="toggle-centre" onclicked="sendMessage()">Centre on Plane</button>
+            <button onclick="sendMessage()">Message entity and EM in Qt</button>
         </div>
-    </div>
+    </div>S
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
     <script src="qrc:///qtwebchannel/qwebchannel.js"></script>
-    <script src="qrc:///mapScript.js"></script></body>
+    <script src="qrc:///mapScript.js"></script>
+    </body>
 </html>

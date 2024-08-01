@@ -23,9 +23,12 @@ class Entity : public QObject
     // Geometry
     Q_PROPERTY(double speed READ speed WRITE setSpeed NOTIFY speedChanged)
     Q_PROPERTY(double radius READ radius WRITE setRadius NOTIFY radiusChanged)
-    Q_PROPERTY(double altitude READ altitude WRITE setAltitude NOTIFY altitudeChanged)
-    Q_PROPERTY(double latitude READ latitude WRITE setLatitude NOTIFY latitudeChanged)
-    Q_PROPERTY(double longitude READ longitude WRITE setLongitude NOTIFY longitudeChanged)
+    Q_PROPERTY(double altitude READ altitude WRITE setAltitude
+               NOTIFY altitudeChanged)
+    Q_PROPERTY(double latitude READ latitude WRITE setLatitude
+               NOTIFY latitudeChanged)
+    Q_PROPERTY(double longitude READ longitude WRITE setLongitude
+               NOTIFY longitudeChanged)
 
 public:
     explicit Entity(QObject *parent = nullptr);
@@ -57,7 +60,7 @@ public:
     void setLongitude(double longitude);
 
 public slots:
-    void doSomething(int value);
+    void logMessage(const QString &message);
 
 signals:
     void nameChanged();

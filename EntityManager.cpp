@@ -1,17 +1,17 @@
 #include "EntityManager.h"
 #include <QVariantMap>
+#include <QDebug>
 
 EntityManager::EntityManager(QObject *parent)
     : QObject(parent)
 {
 }
 
-Entity* EntityManager::createEntity(const QString &name, const QString &UID/*, const QPixmap &icon*/, int radius, double latitude, double longitude)
+Entity* EntityManager::createEntity(const QString &name, const QString &UID, double radius, double latitude, double longitude)
 {
     Entity *entity = new Entity(this);
     entity->setName(name);
     entity->setUID(UID);
-    // entity->setIcon(icon);
     entity->setRadius(radius);
     entity->setLatitude(latitude);
     entity->setLongitude(longitude);
@@ -40,11 +40,15 @@ QList<QVariantMap> EntityManager::listAllEntities() const
     for (const Entity *entity : m_database) {
         QVariantMap entityMap;
         entityMap["Name"] = entity->name();
-        entityMap["UID"] = entity->UID();
+        entityMap["UID"] = entity->UID();        
         entityMap["Radius"] = entity->radius();
         entityMap["Latitude"] = entity->latitude();
         entityMap["Longitude"] = entity->longitude();
         result.append(entityMap);
     }
     return result;
+}
+
+void EntityManager::logMessage(const QString &message) {
+    qDebug() << "EntityManager logged message: " << message;
 }

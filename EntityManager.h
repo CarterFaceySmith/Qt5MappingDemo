@@ -17,7 +17,8 @@ public:
 
 public slots:
     void updateEntityId(const QString &newId);
-    Entity* createEntity(const QString &name, const QString &UID/*, const QPixmap &icon*/, int radius, double latitude, double longitude);
+    Entity* createEntity(const QString &name, const QString &UID, double radius, double latitude, double longitude);
+    void logMessage(const QString &message);
 
 private:
     QList<Entity*> m_database;

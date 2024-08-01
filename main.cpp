@@ -8,32 +8,20 @@
 
 int main(int argc, char *argv[])
 {
-    QApplication app(argc, argv);
-
-    // Create and configure the WebChannel
-    QWebChannel *webChannel = new QWebChannel;
-
-    // Create the WebEngineView but do not show it directly
-    QWebEngineView *view = new QWebEngineView;
-    view->page()->setWebChannel(webChannel);
-    view->setUrl(QUrl("qrc:/map.html"));
+    QGuiApplication app(argc, argv);
 
     QQmlApplicationEngine engine;
-    EntityManager entityManager;
-    Entity entity;
 
-    // Register WebChannel and objects for QML
-    webChannel->registerObject("EntityManager", &entityManager);
-    webChannel->registerObject("Entity", &entity);
-    engine.rootContext()->setContextProperty("webView", view);
+    // Create instances of the C++ classes
+    Entity myEntity;
+    EntityManager myEntityManager;
+
+    // Expose the objects to QML
+    engine.rootContext()->setContextProperty("myEntity", &myEntity);
+    engine.rootContext()->setContextProperty("myEntityManager", &myEntityManager);
 
     // Load the QML file
-    engine.load(QUrl(QStringLiteral("qrc:///main.qml")));
+    engine.load(QUrl(QStringLiteral("qrc:/main.qml")));
 
-    // Check if the QML file loaded successfully
-    if (engine.rootObjects().isEmpty())
-        return -1;
-
-    // Execute the application
     return app.exec();
 }
