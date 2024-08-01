@@ -10,29 +10,7 @@ function initWebChannel(channel) {
 
 window.onload = function() {
     var channel = new QWebChannel(qt.webChannelTransport, initWebChannel);
-    /* ----------------------------- MAP SETUP ----------------------------- */
-    map = L.map('map').setView([-37.814, 144.963], 13); // Melbourne
-    let currentBaseLayer;
 
-    function updateTileLayer(layerType) {
-        if (currentBaseLayer) {
-            map.removeLayer(currentBaseLayer);
-        }
-
-        const tileLayers = {
-            osm: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
-            'stamen-terrain': 'https://tiles.stadiamaps.com/tiles/stamen_terrain/{z}/{x}/{y}{r}.png?api_key=5a677b5d-7b56-450a-b358-2d5a5a8af829',
-            'carto-light': 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png'
-        };
-
-        currentBaseLayer = L.tileLayer(tileLayers[layerType], {
-                                           attribution: layerType === 'osm'
-                                                        ? '© OpenStreetMap contributors'
-                                                        : '© OpenStreetMap contributors, © Stamen Design, © CartoDB'
-                                       }).addTo(map);
-    }
-
-    updateTileLayer('osm'); // Default map layer
 };
 
 // function logMessage() {
@@ -168,7 +146,29 @@ const icons = {
 
 /* ----------------------------- MAIN FUNCTION ----------------------------- */
 document.addEventListener("DOMContentLoaded", function() {
+    /* ----------------------------- MAP SETUP ----------------------------- */
+    map = L.map('map').setView([-37.814, 144.963], 13); // Melbourne
+    let currentBaseLayer;
 
+    function updateTileLayer(layerType) {
+        if (currentBaseLayer) {
+            map.removeLayer(currentBaseLayer);
+        }
+
+        const tileLayers = {
+            osm: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+            'stamen-terrain': 'https://tiles.stadiamaps.com/tiles/stamen_terrain/{z}/{x}/{y}{r}.png?api_key=5a677b5d-7b56-450a-b358-2d5a5a8af829',
+            'carto-light': 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png'
+        };
+
+        currentBaseLayer = L.tileLayer(tileLayers[layerType], {
+                                           attribution: layerType === 'osm'
+                                                        ? '© OpenStreetMap contributors'
+                                                        : '© OpenStreetMap contributors, © Stamen Design, © CartoDB'
+                                       }).addTo(map);
+    }
+
+    updateTileLayer('osm'); // Default map layer
     /* ----------------------------- VARIABLES ----------------------------- */
     const points = [];
     let lines = [];
