@@ -1,8 +1,8 @@
 /* ----------------------------- WEBCHANNEL ----------------------------- */
 function initWebChannel(channel) {
-    window.entityManager = channel.objects.entityManager;
-    window.entity = channel.objects.entity;
-    window.backend = channel.objects.backend;
+    // window.entityManager = channel.objects.entityManager;
+    // window.entity = channel.objects.entity;
+    backend = channel.objects.backend;
 }
 
 window.onload = function() {
@@ -10,8 +10,8 @@ window.onload = function() {
 };
 
 function logMessageJS() {
-    if (window.entityManager) {
-        window.entityManager.showAlert("Hello from JS frontend!");
+    if (backend) {
+        backend.transportMessage("entity", "Hello from JS frontend!");
     } else {
         console.log("backend is not available yet.");
     }
