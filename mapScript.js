@@ -11,6 +11,7 @@ window.onload = function() {
 function logMessage() {
     if (entity) {
         entity.e_TransportMessage("Hello from JS frontend!");
+        entity.e_radius();
     } else {
         console.log("entity is not available yet.");
     }

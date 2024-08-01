@@ -8,7 +8,7 @@ Window {
     visible: true
     width: 800
     height: 600
-    title: "Qt5 WebChannel Mapping Demo"
+    title: "Qt5 WebChannel JavaScript/C++ Map Demo"
 
     WebEngineView {
         id: webView
@@ -46,15 +46,7 @@ Window {
         WebChannel.id: "entityQt"
 
         // Interface Functions - To be called from JS
-        function e_TransportMessage(message) { entity.logMessage("Forwarded from HTML to Entity: " + message); }
+        function e_TransportMessage(message) { entity.logMessage("Forwarded from HTML to Entity: " + message) }
+        function e_radius() { console.log("Entity returned a radius of: " + entity.radius) }
     }
-
-    // QtObject {
-    //     id: backend
-    //     WebChannel.id: "backend"
-
-
-
-    //     // function logMessageEM(message) { entityManager.logMessageEM(messsage); }
-    // }
 }

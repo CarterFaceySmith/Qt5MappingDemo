@@ -33,6 +33,7 @@ class Entity : public QObject
 public:
     explicit Entity(QObject *parent = nullptr);
 
+public:
     // Properties
     QString name() const;
     void setName(const QString &name);
