@@ -15,6 +15,7 @@ int main(int argc, char *argv[])
     EntityManager entityManager;
 
     // Expose the objects to QML
+    qmlRegisterType<Entity>("Qt5MappingDemo", 1, 0, "Entity");
     engine.rootContext()->setContextProperty("entityManager", &entityManager);
 
     // Load the QML file

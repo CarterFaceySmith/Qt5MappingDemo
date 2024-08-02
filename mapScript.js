@@ -28,6 +28,10 @@ window.onload = function() {
 //     }
 // }
 
+function printAllEntities(){
+    entityManager.printAllEntities();
+}
+
 function placeMarkerForEntity(entity) {
     if (entity && entity.latitude !== undefined && entity.longitude !== undefined) {
         console.log("Adding entity marker at lat: " + entity.latitude + " long: " + entity.longitude);
@@ -76,12 +80,13 @@ function updateEntityId() {
     }
 }
 
-function printAllEntities() {
+function getEntityList() {
     if (entityManager) {
-        entityManager.printAllEntities();
+        return entityManager.getEntityList();
     }
     else {
         alert("No entities in database.");
+        return [];
     }
 }
 
@@ -146,6 +151,7 @@ const icons = {
 
 /* ----------------------------- MAIN FUNCTION ----------------------------- */
 document.addEventListener("DOMContentLoaded", function() {
+
     /* ----------------------------- MAP SETUP ----------------------------- */
     map = L.map('map').setView([-37.814, 144.963], 13); // Melbourne
     let currentBaseLayer;
@@ -181,6 +187,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
     const markersLayer = L.layerGroup().addTo(map);
     const linesLayer = L.layerGroup().addTo(map);
+    const entitiesLayer = L.layerGroup().addTo(map);
 
     // var entityList = entityManager.listAllEntities();
 
@@ -196,7 +203,13 @@ document.addEventListener("DOMContentLoaded", function() {
     //     }).addTo(map);
     // });
 
-    /* ----------------------------- FUNCTIONS ----------------------------- */
+    /* ------------------------- INTERNAL FUNCTIONS ------------------------- */
+    function redrawAllLayers() {
+        drawPoints();
+        drawLines();
+        drawEntityMarkers();
+    }
+
     // Function to update user position marker and rings
     function updateUserPosition(latlng) {
         if (userMarker) {
@@ -210,19 +223,19 @@ document.addEventListener("DOMContentLoaded", function() {
         }
 
         userRing = L.circle(latlng, {
-                                radius: 3000, // Radius of the large ring in metres
-                                color: '#FF5722', // Orange
-                                weight: 2,
-                                fillOpacity: 0.15
-                            }).addTo(map);
+            radius: 3000, // Radius of the large ring in metres
+            color: '#FF5722', // Orange
+            weight: 2,
+            fillOpacity: 0.15
+        }).addTo(map);
 
         userSmallRing = L.circle(latlng, {
-                                     radius: 1000, // Radius of the small ring in metres
-                                     color: '#FF5722', // Orange
-                                     weight: 2,
-                                     fillOpacity: 0.3,
-                                     strokeDasharray: '2, 6' // Smaller dotted border attempt - no idea why this is solid
-                                 }).addTo(map);
+             radius: 1000, // Radius of the small ring in metres
+             color: '#FF5722', // Orange
+             weight: 2,
+             fillOpacity: 0.3,
+             strokeDasharray: '2, 6' // Smaller dotted border attempt - no idea why this is solid
+        }).addTo(map);
 
         userMarker = L.marker(latlng, { icon: icons.plane }).addTo(map);
 
@@ -231,24 +244,38 @@ document.addEventListener("DOMContentLoaded", function() {
         }
     }
 
+    function drawEntityMarkers() {
+        var entityList = getEntityList();
+        if (entityList.length > 0) {
+            entityList.forEach((entity) => {
+                L.marker([entity.latitude, entity.longitude],
+                         { draggable: false }).addTo(entitiesLayer);
+            });
+        }
+        else {
+            alert("No entities in entityList.");
+        }
+    }
+
     function drawPoints() {
         markersLayer.clearLayers();
         points.forEach((point) => {
-                           L.marker([point.lat, point.lon], { draggable: true })
-                           .addTo(markersLayer);
-                       });
+            L.marker([point.lat, point.lon], { draggable: true })
+            .addTo(markersLayer);
+        });
     }
 
     function drawLines() {
         linesLayer.clearLayers();
         lines.forEach(line => {
-                          if (line.start && line.end) {
-                              L.polyline([[line.start.lat, line.start.lon], [line.end.lat, line.end.lon]], {
-                                             color: 'black',
-                                             weight: 2
-                                         }).addTo(linesLayer);
-                          }
-                      });
+            if (line.start && line.end) {
+                L.polyline([[line.start.lat, line.start.lon],
+                            [line.end.lat, line.end.lon]], {
+                            color: 'black',
+                            weight: 2
+                }).addTo(linesLayer);
+            }
+        });
     }
 
     function removePoint(latlng) {
@@ -257,8 +284,8 @@ document.addEventListener("DOMContentLoaded", function() {
 
         // Find index of the point to remove based on distance
         const index = points.findIndex(point => {
-                                           return Math.hypot(point.lat - latlng.lat, point.lon - latlng.lng) < tolerance;
-                                       });
+            return Math.hypot(point.lat - latlng.lat, point.lon - latlng.lng) < tolerance;
+        });
 
         if (index !== -1) {
             // Remove the point
@@ -266,15 +293,14 @@ document.addEventListener("DOMContentLoaded", function() {
             // Remove associated lines
             lines = lines.filter(line => line.start !== points[index] && line.end !== points[index]);
 
-            // Redraw points and lines
-            drawPoints();
-            drawLines();
+            redrawAllLayers();
 
         } else {
             alert("No point found or point is too far away."); // Error feedback
         }
     }
 
+    // Map interaction
     map.on('click', function(event) {
         const coords = event.latlng;
         if (!coords) return;
@@ -286,16 +312,19 @@ document.addEventListener("DOMContentLoaded", function() {
             };
             points.push(pointCoords);
             drawPoints();
-        } else if (mode === 'draw-line') {
+        }
+        else if (mode === 'draw-line') {
             if (firstPoint === null) {
                 firstPoint = { lat: coords.lat, lon: coords.lng };
-            } else {
+            }
+            else {
                 const secondPoint = { lat: coords.lat, lon: coords.lng };
                 lines.push({ start: firstPoint, end: secondPoint });
                 drawLines();
                 firstPoint = null; // Reset for the next line
             }
-        } else if (mode === 'remove-point') {
+        }
+        else if (mode === 'remove-point') {
             removePoint(coords);
         }
     });

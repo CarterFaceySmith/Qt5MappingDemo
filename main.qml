@@ -66,6 +66,25 @@ Window {
         function logMessage(message) {
             entityManager.logMessage(message);
         }
+
+        function getEntityList() {
+            var entities = entityManager.getEntityList();
+            var entityModel = [];
+
+            for (var i = 0; i < entities.length; ++i) {
+                var entity = entities[i];
+                entityModel.push({
+                    name: entity.name,
+                    UID: entity.UID,
+                    radius: entity.radius,
+                    latitude: entity.latitude,
+                    longitude: entity.longitude
+                });
+            }
+            // return entityModel;
+            return entities;
+        }
+
     }
 
     // QtObject {

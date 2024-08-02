@@ -17,6 +17,7 @@ Entity* EntityManager::createEntity(const QString &name, const QString &UID, dou
     entity->setLongitude(longitude);
 
     m_database.append(entity);
+    emit entityCreated(entity);
     qDebug() << "Created entity with name " << name << " and UID " << UID;
     return entity;
 }
@@ -38,6 +39,7 @@ void EntityManager::updateEntityId(const QString &currentId, const QString &newI
     for (Entity *entity : m_database) {
         if (entity->UID() == currentId) {
             entity->setUID(newId);
+            emit entityUpdated(entity);
             qDebug() << "Updated entity ID to:" << newId;
         }
         qDebug() << "No matching UID found for UID: " << currentId;
@@ -54,6 +56,15 @@ void EntityManager::printAllEntities()
         qDebug() << "Entity Lat:" << entity->latitude();
         qDebug() << "Entity Long:" << entity->longitude();
     }
+}
+
+QList<QObject*> EntityManager::getEntityList() const
+{
+    QList<QObject*> entityList;
+    for (Entity* entity : m_database){
+        entityList.append(entity);
+    }
+    return entityList;
 }
 
 void EntityManager::logMessage(const QString &message) {

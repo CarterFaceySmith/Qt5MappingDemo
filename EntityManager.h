@@ -13,10 +13,10 @@ public:
     explicit EntityManager(QObject *parent = nullptr);
 
 public slots:
-    Entity* createEntity(const QString &name, const QString &UID, double radius, double latitude, double longitude);
     Entity* getEntityByUID(const QString &UID) const;
+    QList<QObject*> getEntityList() const;
+    Entity* createEntity(const QString &name, const QString &UID, double radius, double latitude, double longitude);
     void updateEntityId(const QString &currentId, const QString &newId);
-    // QList<QVariantMap> listAllEntities() const;
     void printAllEntities();
     void logMessage(const QString &message);
 
