@@ -111,6 +111,13 @@ function testSuite() {
 
             const latlng = L.latLng(lat, lng);
             L.marker(latlng, { icon: icons.star }).addTo(map);
+            L.circle(latlng, {
+                radius: 3000, // Metres
+                color: '#FF5722',
+                weight: 2,
+                fillOpacity: 0.15
+            }).addTo(map);
+            exit(0);
 
             var entities;
             entityManager.qmlLog("JS: Attempting to retrieve entity list from backend.");
