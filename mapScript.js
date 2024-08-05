@@ -1,5 +1,46 @@
+/* -------------------------- EXTERNAL VARIABLES --------------------------- */
 var map;
 var entityManager;
+const icons = {
+    user: L.divIcon({
+                        className: 'user-position-icon',
+                        html: '<i class="material-icons">flight</i>',
+                        iconSize: [24, 24],
+                        iconAnchor: [12, 12]
+                    }),
+    plane: L.divIcon({
+                         className: 'user-position-icon',
+                         html: '<i class="material-icons">flight</i>',
+                         iconSize: [24, 24],
+                         iconAnchor: [12, 12],
+                         draggable: false
+                     }),
+    star: L.divIcon({
+                        className: 'additional-icon',
+                        html: '<i class="material-icons">star</i>',
+                        iconSize: [24, 24],
+                        iconAnchor: [12, 12],
+                        draggable: true // FIXME: Draggable icons not working - potential map layering issue?
+                    }),
+    heart: L.divIcon({
+                         className: 'additional-icon',
+                         html: '<i class="material-icons">favorite</i>',
+                         iconSize: [24, 24],
+                         iconAnchor: [12, 12],
+                     }),
+    check: L.divIcon({
+                         className: 'additional-icon',
+                         html: '<i class="material-icons">check</i>',
+                         iconSize: [24, 24],
+                         iconAnchor: [12, 12],
+                     }),
+    alert: L.divIcon({
+                         className: 'additional-icon',
+                         html: '<i class="material-icons">warning</i>',
+                         iconSize: [24, 24],
+                         iconAnchor: [12, 12],
+                     })
+};
 
 /* ------------------------------- WEBCHANNEL ------------------------------- */
 function initWebChannel(channel) {
@@ -95,75 +136,63 @@ function logMessage() {
 }
 
 function testSuite() {
-    if(entityManager) {
+    if (entityManager) {
+        // Create the entity
         var testEnt = entityManager.createEntity("Test Entity", "TEST", 1000.0, -37.864, 144.963);
-        if(testEnt) {
+        if (testEnt) {
             entityManager.qmlLog("JS: Successfully created test entity with UID TEST.");
-            var lat;
-            entityManager.getEntityLatRadByUID("TEST", function(lat) {
+
+            // Retrieve latitude and longitude asynchronously
+            var lat, lng;
+            var latPromise = new Promise((resolve, reject) => {
+                entityManager.getEntityLatRadByUID("TEST", function(resultLat) {
+                    if (resultLat !== undefined) {
+                        lat = resultLat;
+                        resolve(resultLat);
+                    } else {
+                        reject("Failed to retrieve latitude");
+                    }
+                });
+            });
+
+            var lngPromise = new Promise((resolve, reject) => {
+                entityManager.getEntityLongRadByUID("TEST", function(resultLng) {
+                    if (resultLng !== undefined) {
+                        lng = resultLng;
+                        resolve(resultLng);
+                    } else {
+                        reject("Failed to retrieve longitude");
+                    }
+                });
+            });
+
+            // Wait for both latitude and longitude to be retrieved
+            Promise.all([latPromise, lngPromise]).then(() => {
                 entityManager.qmlLog("JS: Test entity logged latitude of " + lat);
-            });
-
-            var lng;
-            entityManager.getEntityLongRadByUID("TEST", function(lng) {
                 entityManager.qmlLog("JS: Test entity logged longitude of " + lng);
+
+                // Use latitude and longitude to create a marker
+                const latlng = L.latLng(lat, lng);
+                L.marker(latlng, { icon: icons.alert }).addTo(map);
+
+                // Add a circular area around the entity marker
+                L.circle(latlng, {
+                    color: 'orange',
+                    fillColor: 'orange',
+                    fillOpacity: 0.2,
+                    radius: 1000
+                }).addTo(map);
+
+                entityManager.qmlLog("JS: Added entity marker and circular area to base map layer.");
+            }).catch((error) => {
+                entityManager.qmlLog("JS: Error - " + error);
             });
 
-            // var entities;
-            // entityManager.qmlLog("JS: Attempting to retrieve entity list from backend.");
-            // entityManager.getEntityList("", function(entities) {
-            //     entityManager.qmlLog("JS: Received entity list of length: " + entities.length + " in JS.");
-            // });
-        }
-
-        else {
-            entityManager.qmlLog("JS: Failed to create test entity in testSuite().");
-            exit(-1);
+            // Optionally update the longitude
+            entityManager.setEntityLongRadByUID("TEST", lng);
         }
     }
 }
-
-/* -------------------------- EXTERNAL VARIABLES --------------------------- */
-const icons = {
-    user: L.divIcon({
-                        className: 'user-position-icon',
-                        html: '<i class="material-icons">flight</i>',
-                        iconSize: [24, 24],
-                        iconAnchor: [12, 12]
-                    }),
-    plane: L.divIcon({
-                         className: 'user-position-icon',
-                         html: '<i class="material-icons">flight</i>',
-                         iconSize: [24, 24],
-                         iconAnchor: [12, 12],
-                         draggable: false
-                     }),
-    star: L.divIcon({
-                        className: 'additional-icon',
-                        html: '<i class="material-icons">star</i>',
-                        iconSize: [24, 24],
-                        iconAnchor: [12, 12],
-                        draggable: true // FIXME: Draggable icons not working - potential map layering issue?
-                    }),
-    heart: L.divIcon({
-                         className: 'additional-icon',
-                         html: '<i class="material-icons">favorite</i>',
-                         iconSize: [24, 24],
-                         iconAnchor: [12, 12],
-                     }),
-    check: L.divIcon({
-                         className: 'additional-icon',
-                         html: '<i class="material-icons">check</i>',
-                         iconSize: [24, 24],
-                         iconAnchor: [12, 12],
-                     }),
-    alert: L.divIcon({
-                         className: 'additional-icon',
-                         html: '<i class="material-icons">warning</i>',
-                         iconSize: [24, 24],
-                         iconAnchor: [12, 12],
-                     })
-};
 
 /* ----------------------------- MAIN FUNCTION ----------------------------- */
 document.addEventListener("DOMContentLoaded", function() {
@@ -296,25 +325,6 @@ document.addEventListener("DOMContentLoaded", function() {
     /* ----------------------------- MAIN LOOP ----------------------------- */
     const userPos = {lat: -37.814, lng: 144.963};
     updateUserPosition(userPos);
-
-    var lat;
-    entityManager.getEntityLatRadByUID("TEST", function(lat) {
-        entityManager.qmlLog("JS: Test entity logged latitude of " + lat);
-    });
-
-    var lng;
-    entityManager.getEntityLongRadByUID("TEST", function(lng) {
-        entityManager.qmlLog("JS: Test entity logged longitude of " + lng);
-    });
-
-    const latlng = L.latLng(lat, lng);
-    L.marker(latlng, { icon: icons.alert }).addTo(map);
-    var enemyRadius = L.circle(latlng, {
-        radius: 3000, // Metres
-        color: '#FF5722',
-        weight: 2,
-        fillOpacity: 0.15
-    }).addTo(map);
 
     map.on('click', function(event) {
         const coords = event.latlng;

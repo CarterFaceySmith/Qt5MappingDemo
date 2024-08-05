@@ -38,8 +38,8 @@ Window {
 
         /* SETTERS */
         function setEntityUID(currUID, newUID) { if (entityManager) entityManager.getEntityByUID(currUID).setUID(currUID, newUID) }
-        function setEntityLongRadByUID(lng) { if (entityManager)  entityManager.getEntityByUID(UID).setLongitudeRadians(lng) }
-        function setEntityLatRadByUID(lat) { if (entityManager) entityManager.getEntityByUID(UID).setLatitudeRadians(lat) }
+        function setEntityLongRadByUID(UID, lng) { if (entityManager)  entityManager.getEntityByUID(UID).setLongitudeRadians(lng) }
+        function setEntityLatRadByUID(UID, lat) { if (entityManager) entityManager.getEntityByUID(UID).setLatitudeRadians(lat) }
 
         /* MISC. */
         function logMessage(message) { if (entityManager) entityManager.logMessage(message) }
