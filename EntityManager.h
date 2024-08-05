@@ -14,9 +14,8 @@ public:
 
 public slots:
     Entity* getEntityByUID(const QString &UID) const;
-    QList<QObject*> getEntityList() const;
-    Entity* createEntity(const QString &name, const QString &UID, double radius, double latitude, double longitude);
-    void updateEntityId(const QString &currentId, const QString &newId);
+    QVariantMap getEntityList() const;
+    void createEntity(const QString &name, const QString &UID, double radius, double latitude, double longitude);
     void printAllEntities();
     void logMessage(const QString &message);
 

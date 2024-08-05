@@ -4,7 +4,7 @@
 #include <QObject>
 #include <QString>
 
-enum entityType
+enum entitySymbol
 {
     BLUE,
     RED,
@@ -17,7 +17,7 @@ class Entity : public QObject
 
     // Properties
     Q_PROPERTY(QString name READ name WRITE setName NOTIFY nameChanged)
-    Q_PROPERTY(entityType type READ type WRITE setType NOTIFY typeChanged)
+    Q_PROPERTY(tntitySymbol symbol READ symbol WRITE setSymbol NOTIFY symbolChanged)
     Q_PROPERTY(QString UID READ UID WRITE setUID NOTIFY UIDChanged)
 
     // Geometry
@@ -25,20 +25,21 @@ class Entity : public QObject
     Q_PROPERTY(double radius READ radius WRITE setRadius NOTIFY radiusChanged)
     Q_PROPERTY(double altitude READ altitude WRITE setAltitude
                NOTIFY altitudeChanged)
-    Q_PROPERTY(double latitude READ latitude WRITE setLatitude
-               NOTIFY latitudeChanged)
-    Q_PROPERTY(double longitude READ longitude WRITE setLongitude
-               NOTIFY longitudeChanged)
+    Q_PROPERTY(double latitudeRadians READ latitudeRadians WRITE setLatitudeRadians
+               NOTIFY latitudeRadiansChanged)
+    Q_PROPERTY(double longitudeRadians READ longitudeRadians WRITE setLongitudeRadians
+               NOTIFY longitudeRadiansChanged)
 
 public:
     explicit Entity(QObject *parent = nullptr);
 
+public slots:
     // Properties
     QString name() const;
     void setName(const QString &name);
 
-    entityType type() const;
-    void setType(const entityType &type);
+    entitySymbol symbol() const;
+    void setSymbol(const entitySymbol &symbol);
 
     QString UID() const;
     void setUID(const QString &UID);
@@ -53,34 +54,35 @@ public:
     double altitude() const;
     void setAltitude(double altitude);
 
-    double latitude() const;
-    void setLatitude(double latitude);
+    double latitudeRadians() const;
+    void setLatitudeRadians(double latitudeRadians);
+    double returnLatAsDeg() const;
 
-    double longitude() const;
-    void setLongitude(double longitude);
+    double longitudeRadians() const;
+    void setLongitudeRadians(double longitudeRadians);
+    double returnLongAsDeg() const;
 
-public slots:
     void logMessage(const QString &message);
 
 signals:
     void nameChanged();
-    void typeChanged();
+    void symbolChanged();
     void UIDChanged();
     void speedChanged();
     void radiusChanged();
     void altitudeChanged();
-    void latitudeChanged();
-    void longitudeChanged();
+    void latitudeRadiansChanged();
+    void longitudeRadiansChanged();
 
 private:
     QString m_name;
-    entityType m_type;
+    entitySymbol m_symbol;
     QString m_UID;
     double m_speed;
     double m_radius;
     double m_altitude;
-    double m_latitude;
-    double m_longitude;
+    double m_latitudeRadians;
+    double m_longitudeRadians;
 };
 
 #endif // ENTITY_H

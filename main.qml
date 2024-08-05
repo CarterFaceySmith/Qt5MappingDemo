@@ -1,8 +1,9 @@
 import QtQuick 2.15
 import QtQuick.Controls 2.15
-import QtWebEngine 1.15
+import QtWebEngine 1.10
 import QtWebChannel 1.15
 import QtQuick.Window 2.14
+import "qrc:///mapScript.js" as MapScript
 
 Window {
     visible: true
@@ -15,16 +16,6 @@ Window {
         anchors.fill: parent
         url: "qrc:///map.html"
 
-        // FIXME: Temporary removal for build debugging
-        // onLoadingChanged: {
-        //     if (loadRequest.status === WebEngineLoadRequest.LoadSucceededStatus) {
-        //         console.log("QML WebEngine loaded successfully.")
-        //     } else {
-        //         console.log("QML WebEngine failed to load.")
-        //     }
-        // }
-
-        // Set up the WebChannel and register objects
         WebChannel {
             id: channel
             registeredObjects: [entityManagerObject]
@@ -33,66 +24,39 @@ Window {
         webChannel: channel
     }
 
-    /* Developer Note:
-       This is annoying, it seems like you shouldn't have to write these wrapper functions to expose internal C++
-       functions to JS, since the exposure of the C++ class to the QML application should do that anyway.
-       Maybe I'm an idiot, maybe it's a syntax error, not sure.
-
-       Current thinking is to have the entityManager handle being in here with defined interface functions, and
-       only interact with entities by way of the manager.
-       E.g. JS calls entityManager.em_GetEntityByUUID("UID001").<Some entity internal C++ function>
-    */
     // Expose EntityManager to the JavaScript
     QtObject {
         id: entityManagerObject
         WebChannel.id: "entityManager"
 
-        function createEntity(name, UID, radius, latitude, longitude) {
-            return entityManager.createEntity(name, UID, radius, latitude, longitude);
-        }
+        /* GETTERS */
+        function getEntityByUID(UID) { if (entityManager) return entityManager.getEntityByUID(UID) }
+        function getEntityLongRadByUID(UID) { if (entityManager) return entityManager.getEntityByUID(UID).longitudeRadians }
+        function getEntityLatRadByUID(UID) { if (entityManager) return entityManager.getEntityByUID(UID).latitudeRadians }
+        function getEntityLongDegByUID(UID) { if (entityManager) return entityManager.getEntityByUID(UID).returnLongAsDeg() }
+        function getEntityLatDegByUID(UID) { if (entityManager) return entityManager.getEntityByUID(UID).returnLatAsDeg() }
 
-        function printAllEntities(){
-            entityManager.printAllEntities();
-        }
+        /* SETTERS */
+        function setEntityUID(currUID, newUID) { if (entityManager) entityManager.getEntityByUID(currUID).setUID(currUID, newUID) }
+        function setEntityLongRadByUID(lng) { if (entityManager)  entityManager.getEntityByUID(UID).setLongitudeRadians(lng) }
+        function setEntityLatRadByUID(lat) { if (entityManager) entityManager.getEntityByUID(UID).setLatitudeRadians(lat) }
 
-        function getEntityByUID(UID) {
-            return entityManager.getEntityByUID(UID);
-        }
+        /* MISC. */
+        function logMessage(message) { if (entityManager) entityManager.logMessage(message) }
 
-        function updateEntityId(currentId, newId) {
-            entityManager.updateEntityId(currentId, newId);
-        }
+        function createEntity(name, UID, radius, latitude, longitude) { if (entityManager) return entityManager.createEntity(name, UID, radius, latitude, longitude) }
 
-        function logMessage(message) {
-            entityManager.logMessage(message);
-        }
+        function printAllEntities(){if (entityManager) entityManager.printAllEntities() }
 
         function getEntityList() {
-            var entities = entityManager.getEntityList();
-            var entityModel = [];
-
-            for (var i = 0; i < entities.length; ++i) {
-                var entity = entities[i];
-                entityModel.push({
-                    name: entity.name,
-                    UID: entity.UID,
-                    radius: entity.radius,
-                    latitude: entity.latitude,
-                    longitude: entity.longitude
-                });
+            var result = [];
+            if (entityManager) {
+                result = entityManager.getEntityList();
+                console.log("QML: Received C++ entity list of length: " + result.entities.length);
+                result = result.entities;
             }
-            // return entityModel;
-            return entities;
+            return result;
         }
-
     }
-
-    // QtObject {
-    //     id: entityQt
-    //     WebChannel.id: "entityQt"
-
-    //     // Interface Functions - To be called from JS
-    //     function e_TransportMessage(message) { entity.logMessage("Forwarded from HTML to Entity: " + message) }
-    //     function e_radius() { console.log("Entity returned a radius of: " + entity.radius) }
-    // }
 }
+
