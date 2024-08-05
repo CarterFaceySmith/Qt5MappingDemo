@@ -1,6 +1,7 @@
 /* -------------------------- EXTERNAL VARIABLES --------------------------- */
 var map;
 var entityManager;
+var markersLayer;
 const icons = {
     user: L.divIcon({
                         className: 'user-position-icon',
@@ -142,8 +143,15 @@ function testSuite() {
         if (testEnt) {
             entityManager.qmlLog("JS: Successfully created test entity with UID TEST.");
 
-            // Retrieve latitude and longitude asynchronously
+            // Define variables for latitude, longitude, and the list
             var lat, lng;
+            var marker;
+            var entityList;
+
+            // Create and add markersLayer to the map
+            var markersLayer = L.layerGroup().addTo(map);
+
+            // Retrieve latitude asynchronously
             var latPromise = new Promise((resolve, reject) => {
                 entityManager.getEntityLatRadByUID("TEST", function(resultLat) {
                     if (resultLat !== undefined) {
@@ -155,6 +163,7 @@ function testSuite() {
                 });
             });
 
+            // Retrieve longitude asynchronously
             var lngPromise = new Promise((resolve, reject) => {
                 entityManager.getEntityLongRadByUID("TEST", function(resultLng) {
                     if (resultLng !== undefined) {
@@ -166,14 +175,31 @@ function testSuite() {
                 });
             });
 
-            // Wait for both latitude and longitude to be retrieved
-            Promise.all([latPromise, lngPromise]).then(() => {
+            // Retrieve the list asynchronously
+            var listPromise = new Promise((resolve, reject) => {
+                entityManager.getEntityList(function(resultList) {
+                    if (Array.isArray(resultList)) {
+                        entityList = resultList;
+                        resolve(resultList);
+                    } else {
+                        reject("Failed to retrieve list or list is not an array");
+                    }
+                });
+            });
+
+            // Wait for latitude, longitude, and list to be retrieved
+            Promise.all([latPromise, lngPromise, listPromise]).then(() => {
                 entityManager.qmlLog("JS: Test entity logged latitude of " + lat);
                 entityManager.qmlLog("JS: Test entity logged longitude of " + lng);
 
-                // Use latitude and longitude to create a marker
+                // If marker is already created, remove it
+                if (marker) {
+                    markersLayer.removeLayer(marker);
+                }
+
+                // Create a marker for the test entity
                 const latlng = L.latLng(lat, lng);
-                L.marker(latlng, { icon: icons.alert }).addTo(map);
+                marker = L.marker(latlng, { icon: icons.alert }).addTo(markersLayer);
 
                 // Add a circular area around the entity marker
                 L.circle(latlng, {
@@ -181,18 +207,52 @@ function testSuite() {
                     fillColor: 'orange',
                     fillOpacity: 0.2,
                     radius: 1000
-                }).addTo(map);
+                }).addTo(markersLayer);
 
-                entityManager.qmlLog("JS: Added entity marker and circular area to base map layer.");
+                entityManager.qmlLog("JS: Added entity marker and circular area to markers layer.");
+
+                // Add markers for each entity in the list
+                entityList.forEach((entity) => {
+                    if (entity.latitude !== undefined && entity.longitude !== undefined) {
+                        const entityLatLng = L.latLng(entity.latitude, entity.longitude);
+                        L.marker(entityLatLng, { icon: icons.alert }).addTo(markersLayer);
+                        L.circle(entityLatLng, {
+                            color: 'purple',
+                            fillColor: 'purple',
+                            fillOpacity: 0.2,
+                            radius: 1000
+                        }).addTo(markersLayer);
+                    } else {
+                        entityManager.qmlLog("JS: Entity missing latitude or longitude", entity);
+                    }
+                });
+
             }).catch((error) => {
                 entityManager.qmlLog("JS: Error - " + error);
             });
 
             // Optionally update the longitude
-            entityManager.setEntityLongRadByUID("TEST", lng);
+            entityManager.setEntityLongRadByUID("TEST", 144.300);
+
+            // Retrieve the updated longitude
+            new Promise((resolve, reject) => {
+                entityManager.getEntityLongRadByUID("TEST", function(updatedLng) {
+                    if (updatedLng !== undefined) {
+                        resolve(updatedLng);
+                    } else {
+                        reject("Failed to retrieve updated longitude");
+                    }
+                });
+            }).then((updatedLng) => {
+                entityManager.qmlLog("JS: Test entity logged an updated longitude of " + updatedLng);
+            }).catch((error) => {
+                entityManager.qmlLog("JS: Error - " + error);
+            });
         }
     }
 }
+
+
 
 /* ----------------------------- MAIN FUNCTION ----------------------------- */
 document.addEventListener("DOMContentLoaded", function() {
@@ -234,8 +294,6 @@ document.addEventListener("DOMContentLoaded", function() {
     const markersLayer = L.layerGroup().addTo(map);
     const linesLayer = L.layerGroup().addTo(map);
     const entitiesLayer = L.layerGroup().addTo(map);
-
-    testSuite(); // Run default test suite function
 
     /* ------------------------- INTERNAL FUNCTIONS ------------------------- */
     function redrawAllLayers() {
