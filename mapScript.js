@@ -189,6 +189,7 @@ function testSuite() {
             Promise.all([latPromise, lngPromise, listPromise]).then(() => {
                 entityManager.qmlLog("JS: Test entity logged latitude of " + lat);
                 entityManager.qmlLog("JS: Test entity logged longitude of " + lng);
+                entityManager.qmlLog("JS: Received entity list from DB of length " + entityList.length);
 
                 if (marker) {
                     markersLayer.removeLayer(marker);
@@ -421,14 +422,6 @@ document.addEventListener("DOMContentLoaded", function() {
             moveUserPosition(0, step);
             break;
         }
-    });
-
-    document.getElementById('draw-entity-markers').addEventListener('click', function() {
-        drawEntityMarkers();
-    });
-
-    document.getElementById('place-carter').addEventListener('click', function() {
-        placeCarter();
     });
 
     document.getElementById('add-point').addEventListener('click', function() {
