@@ -24,11 +24,11 @@ function createEntity() {
 
         var newEntity = entityManager.createEntity(name, UID, radius, latitude, longitude);
         if (newEntity) {
-            entityManager.logMessage("JS: createEntity() created entity with name: " + name);
+            entityManager.qmlLog("JS: createEntity() created entity with name: " + name);
             // TODO:  Place marker for the fetched entity
         }
         else {
-            entityManager.logMessage("JS: createEntity() failed to create an entity.");
+            entityManager.qmlLog("JS: createEntity() failed to create an entity.");
         }
     }
 }
@@ -38,10 +38,10 @@ function getEntityByUID() {
         var UID = document.getElementById("UID").value.trim();
         var entity = entityManager.getEntityByUID(UID);
         if (entity.UID !== "") {
-            entityManager.logMessage("JS: Entity found from getEntityByUID with UID: " + UID);
+            entityManager.qmlLog("JS: Entity found from getEntityByUID with UID: " + UID);
             placeMarkerForEntity(entity); // Place marker for the fetched entity
         } else {
-            entityManager.logMessage("JS: Entity not found from getEntityByUID.");
+            entityManager.qmlLog("JS: Entity not found from getEntityByUID.");
         }
     }
 }
@@ -59,9 +59,9 @@ function getEntities() {
     if (entityManager) {
         var entities;
         entityManager.getEntityList(function(entities) {
-            entityManager.logMessage("JS: Attempting to retrieve entity list from backend.");
+            entityManager.qmlLog("JS: Attempting to retrieve entity list from backend.");
         });
-        entityManager.logMessage("JS: Received entity list of length: " + entities.length + " in JS.");
+        entityManager.qmlLog("JS: Received entity list of length: " + entities.length + " in JS.");
 
         // var entityDatabaseModel = [];
 
@@ -82,7 +82,7 @@ function getEntities() {
         // return entityDatabaseModel;
     }
     else {
-        entityManager.logMessage("JS: No entities in database.");
+        entityManager.qmlLog("JS: No entities in database.");
         return [];
     }
 }
@@ -98,29 +98,29 @@ function testSuite() {
     if(entityManager) {
         var testEnt = entityManager.createEntity("Test Entity", "TEST", 1000.0, -37.864, 144.963);
         if(testEnt) {
-            entityManager.logMessage("JS: Successfully created test entity with UID TEST.");
+            entityManager.qmlLog("JS: Successfully created test entity with UID TEST.");
             var lat;
             entityManager.getEntityLatRadByUID("TEST", function(lat) {
-                entityManager.logMessage("JS: Test entity logged latitude of " + lat);
+                entityManager.qmlLog("JS: Test entity logged latitude of " + lat);
             });
 
             var lng;
             entityManager.getEntityLongRadByUID("TEST", function(lng) {
-                entityManager.logMessage("JS: Test entity logged longitude of " + lng);
+                entityManager.qmlLog("JS: Test entity logged longitude of " + lng);
             });
 
             const latlng = L.latLng(lat, lng);
             L.marker(latlng, { icon: icons.star }).addTo(map);
 
             var entities;
-            entityManager.logMessage("JS: Attempting to retrieve entity list from backend.");
+            entityManager.qmlLog("JS: Attempting to retrieve entity list from backend.");
             entityManager.getEntityList("", function(entities) {
-                entityManager.logMessage("JS: Received entity list of length: " + entities.length + " in JS.");
+                entityManager.qmlLog("JS: Received entity list of length: " + entities.length + " in JS.");
             });
         }
 
         else {
-            entityManager.logMessage("JS: Failed to create test entity in testSuite().");
+            entityManager.qmlLog("JS: Failed to create test entity in testSuite().");
             exit(-1);
         }
     }
@@ -284,7 +284,7 @@ document.addEventListener("DOMContentLoaded", function() {
         }
 
         else {
-            entityManager.logMessage("JS: removePoint() found no point, or point is too far away.");
+            entityManager.qmlLog("JS: removePoint() found no point, or point is too far away.");
         }
     }
 

@@ -43,21 +43,21 @@ Window {
 
         /* MISC. */
         function logMessage(message) { if (entityManager) entityManager.logMessage(message) }
+        function qmlLog(msg) { console.debug(msg) }
 
         function createEntity(name, UID, radius, latitude, longitude) { if (entityManager) return entityManager.createEntity(name, UID, radius, latitude, longitude) }
 
         function printAllEntities() { if (entityManager) entityManager.printAllEntities() }
 
-        function getEntityList() { if (entityManager) return entityManager.getEntityList() }
-        // function getEntityList() {
-        //     var result = [];
-        //     if (entityManager) {
-        //         result = entityManager.getEntityList();
-        //         console.log("QML: Received C++ entity list of length: " + result.entities.length);
-        //         result = result.entities;
-        //     }
-        //     return result;
-        // }
+        function getEntityList() {
+            var result = [];
+            if (entityManager) {
+                result = entityManager.getEntityList();
+                console.log("QML: Received C++ entity list of length: " + result.entities.length);
+                result = result.entities;
+            }
+            return result;
+        }
     }
 }
 
