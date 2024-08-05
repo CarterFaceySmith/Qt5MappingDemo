@@ -3,7 +3,7 @@
 #include <cmath>
 
 Entity::Entity(QObject *parent)
-    : QObject(parent), m_name("Unknown"), m_symbol(entitySymbol::UNKNOWN),
+    : QObject(parent), m_name("Unknown"), m_symbol(EntitySymbol::UNKNOWN),
       m_UID("UKN"), m_speed(0.0), m_radius(0.0), m_altitude(0.0),
       m_latitudeRadians(0.0), m_longitudeRadians(0.0)
 {
@@ -21,13 +21,12 @@ void Entity::setName(const QString &name)
         emit nameChanged();
     }
 }
-
-entitySymbol Entity::symbol() const
+EntitySymbol Entity::symbol() const
 {
     return m_symbol;
 }
 
-void Entity::setSymbol(const entitySymbol &symbol)
+void Entity::setSymbol(const EntitySymbol &symbol)
 {
     if (m_symbol != symbol) {
         m_symbol = symbol;

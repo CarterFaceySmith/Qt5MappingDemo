@@ -31,7 +31,7 @@ Window {
 
         /* GETTERS */
         function getEntityByUID(UID) { if (entityManager) return entityManager.getEntityByUID(UID) }
-        function getEntityLongRadByUID(UID) { if (entityManager) return entityManager.getEntityByUID(UID).longitudeRadians }
+        function getEntityLongRadByUID(UID) { if (entityManager) return  entityManager.getEntityByUID(UID).longitudeRadians }
         function getEntityLatRadByUID(UID) { if (entityManager) return entityManager.getEntityByUID(UID).latitudeRadians }
         function getEntityLongDegByUID(UID) { if (entityManager) return entityManager.getEntityByUID(UID).returnLongAsDeg() }
         function getEntityLatDegByUID(UID) { if (entityManager) return entityManager.getEntityByUID(UID).returnLatAsDeg() }
@@ -46,17 +46,18 @@ Window {
 
         function createEntity(name, UID, radius, latitude, longitude) { if (entityManager) return entityManager.createEntity(name, UID, radius, latitude, longitude) }
 
-        function printAllEntities(){if (entityManager) entityManager.printAllEntities() }
+        function printAllEntities() { if (entityManager) entityManager.printAllEntities() }
 
-        function getEntityList() {
-            var result = [];
-            if (entityManager) {
-                result = entityManager.getEntityList();
-                console.log("QML: Received C++ entity list of length: " + result.entities.length);
-                result = result.entities;
-            }
-            return result;
-        }
+        function getEntityList() { if (entityManager) return entityManager.getEntityList() }
+        // function getEntityList() {
+        //     var result = [];
+        //     if (entityManager) {
+        //         result = entityManager.getEntityList();
+        //         console.log("QML: Received C++ entity list of length: " + result.entities.length);
+        //         result = result.entities;
+        //     }
+        //     return result;
+        // }
     }
 }
 

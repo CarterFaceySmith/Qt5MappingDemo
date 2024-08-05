@@ -1,7 +1,7 @@
 var map;
 var entityManager;
 
-/* ----------------------------- WEBCHANNEL ----------------------------- */
+/* ------------------------------- WEBCHANNEL ------------------------------- */
 function initWebChannel(channel) {
     entityManager = channel.objects.entityManager;
     testSuite();
@@ -11,6 +11,7 @@ window.onload = function() {
     var channel = new QWebChannel(qt.webChannelTransport, initWebChannel);
 };
 
+/* --------------------------- EXTERNAL FUNCTIONS --------------------------- */
 function printAllEntities(){ entityManager.printAllEntities() }
 
 function createEntity() {
@@ -54,30 +55,34 @@ function updateEntityId() {
 }
 
 // FIXME: Not working currently, receiving Promise object instead of list.
-function getEntityList() {
+function getEntities() {
     if (entityManager) {
-        var entities = entityManager.getEntityList();
-        logMessage("JS: Received entity list of length: " + entities.length + " in JS.");
-        var entityDatabaseModel = [];
+        var entities;
+        entityManager.getEntityList(function(entities) {
+            entityManager.logMessage("JS: Attempting to retrieve entity list from backend.");
+        });
+        entityManager.logMessage("JS: Received entity list of length: " + entities.length + " in JS.");
 
-        // Iterate through the list of QObject pointers
-        for (var i = 0; i < entities.length; ++i) {
-            var entity = entities[i];
-            // Access the properties and push to the model
-            entityDatabaseModel.push({
-                name: entity.name,
-                UID: entity.UID,
-                radius: entity.radius,
-                latitude: entity.latitude,
-                longitude: entity.longitude
-            });
-        }
-        logMessage("JS: Moved entities to entityDatabaseModel of length: " + entityDatabaseModel.length + " in JS.");
+        // var entityDatabaseModel = [];
 
-        return entityDatabaseModel;
+        // // Iterate through the list of QObject pointers
+        // for (var i = 0; i < entities.length; ++i) {
+        //     var entity = entities[i];
+        //     // Access the properties and push to the model
+        //     entityDatabaseModel.push({
+        //         name: entity.name,
+        //         UID: entity.UID,
+        //         radius: entity.radius,
+        //         latitude: entity.latitude,
+        //         longitude: entity.longitude
+        //     });
+        // }
+        // logMessage("JS: Moved entities to entityDatabaseModel of length: " + entityDatabaseModel.length + " in JS.");
+
+        // return entityDatabaseModel;
     }
     else {
-        logMessage("JS: No entities in database.");
+        entityManager.logMessage("JS: No entities in database.");
         return [];
     }
 }
@@ -94,13 +99,26 @@ function testSuite() {
         var testEnt = entityManager.createEntity("Test Entity", "TEST", 1000.0, -37.864, 144.963);
         if(testEnt) {
             entityManager.logMessage("JS: Successfully created test entity with UID TEST.");
-            var lat = entityManager.getEntityLatRadByUID("TEST");
-            entityManager.logMessage("JS: Test entity logged latitude of " + lat);
-            var lng = entityManager.getEntityLongRadByUID("TEST");
-            entityManager.logMessage("JS: Test entity logged longitude of " + lng);
+            var lat;
+            entityManager.getEntityLatRadByUID("TEST", function(lat) {
+                entityManager.logMessage("JS: Test entity logged latitude of " + lat);
+            });
+
+            var lng;
+            entityManager.getEntityLongRadByUID("TEST", function(lng) {
+                entityManager.logMessage("JS: Test entity logged longitude of " + lng);
+            });
+
             const latlng = L.latLng(lat, lng);
             L.marker(latlng, { icon: icons.star }).addTo(map);
+
+            var entities;
+            entityManager.logMessage("JS: Attempting to retrieve entity list from backend.");
+            entityManager.getEntityList("", function(entities) {
+                entityManager.logMessage("JS: Received entity list of length: " + entities.length + " in JS.");
+            });
         }
+
         else {
             entityManager.logMessage("JS: Failed to create test entity in testSuite().");
             exit(-1);
@@ -180,8 +198,8 @@ document.addEventListener("DOMContentLoaded", function() {
     /* ----------------------------- VARIABLES ----------------------------- */
     const points = [];
     let lines = [];
-    let mode = 'scroll';            // Default mode
-    let autoCentreOnPlane = true;   // Toggle for auto-centre
+    let mode = 'scroll';            // Default map mode
+    let autoCentreOnPlane = true;
     let userMarker;
     let userRing;
     let userSmallRing;
@@ -211,18 +229,17 @@ document.addEventListener("DOMContentLoaded", function() {
         }
 
         userRing = L.circle(latlng, {
-            radius: 3000, // Radius of the large ring in metres
-            color: '#FF5722', // Orange
+            radius: 3000, // Metres
+            color: '#FF5722',
             weight: 2,
             fillOpacity: 0.15
         }).addTo(map);
 
         userSmallRing = L.circle(latlng, {
-             radius: 1000, // Radius of the small ring in metres
-             color: '#FF5722', // Orange
+             radius: 1000, // Metres
+             color: '#FF5722',
              weight: 2,
              fillOpacity: 0.3,
-             strokeDasharray: '2, 6' // Smaller dotted border attempt - no idea why this is solid
         }).addTo(map);
 
         userMarker = L.marker(latlng, { icon: icons.plane }).addTo(map);
@@ -263,7 +280,6 @@ document.addEventListener("DOMContentLoaded", function() {
         if (index !== -1) {
             points.splice(index, 1);
             lines = lines.filter(line => line.start !== points[index] && line.end !== points[index]);
-
             redrawAllLayers();
         }
 
@@ -272,9 +288,18 @@ document.addEventListener("DOMContentLoaded", function() {
         }
     }
 
-    updateUserPosition(-37.814, 144.963);
+    function moveUserPosition(deltaLat, deltaLng) {
+        const newLat = userMarker.getLatLng().lat + deltaLat;
+        const newLng = userMarker.getLatLng().lng + deltaLng;
+        const newLatLng = L.latLng(newLat, newLng);
 
-    // Map interaction
+        updateUserPosition(newLatLng);
+    }
+
+    /* ----------------------------- MAIN LOOP ----------------------------- */
+    const userPos = {lat: -37.814, lng: 144.963};
+    updateUserPosition(userPos);
+
     map.on('click', function(event) {
         const coords = event.latlng;
         if (!coords) return;
@@ -302,14 +327,6 @@ document.addEventListener("DOMContentLoaded", function() {
             removePoint(coords);
         }
     });
-
-    function moveUserPosition(deltaLat, deltaLng) {
-        const newLat = userMarker.getLatLng().lat + deltaLat;
-        const newLng = userMarker.getLatLng().lng + deltaLng;
-        const newLatLng = L.latLng(newLat, newLng);
-
-        updateUserPosition(newLatLng);
-    }
 
     /* -------------------------- EVENT LISTENERS -------------------------- */
     document.addEventListener('keydown', function(event) {

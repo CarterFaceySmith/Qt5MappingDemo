@@ -4,7 +4,7 @@
 #include <QObject>
 #include <QString>
 
-enum entitySymbol
+enum EntitySymbol
 {
     BLUE,
     RED,
@@ -17,7 +17,7 @@ class Entity : public QObject
 
     // Properties
     Q_PROPERTY(QString name READ name WRITE setName NOTIFY nameChanged)
-    Q_PROPERTY(tntitySymbol symbol READ symbol WRITE setSymbol NOTIFY symbolChanged)
+    Q_PROPERTY(EntitySymbol symbol READ symbol WRITE setSymbol NOTIFY symbolChanged)
     Q_PROPERTY(QString UID READ UID WRITE setUID NOTIFY UIDChanged)
 
     // Geometry
@@ -38,8 +38,8 @@ public slots:
     QString name() const;
     void setName(const QString &name);
 
-    entitySymbol symbol() const;
-    void setSymbol(const entitySymbol &symbol);
+    EntitySymbol symbol() const;
+    void setSymbol(const EntitySymbol &symbol);
 
     QString UID() const;
     void setUID(const QString &UID);
@@ -76,7 +76,7 @@ signals:
 
 private:
     QString m_name;
-    entitySymbol m_symbol;
+    EntitySymbol m_symbol;
     QString m_UID;
     double m_speed;
     double m_radius;
