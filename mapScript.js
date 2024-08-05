@@ -109,21 +109,11 @@ function testSuite() {
                 entityManager.qmlLog("JS: Test entity logged longitude of " + lng);
             });
 
-            const latlng = L.latLng(lat, lng);
-            L.marker(latlng, { icon: icons.star }).addTo(map);
-            L.circle(latlng, {
-                radius: 3000, // Metres
-                color: '#FF5722',
-                weight: 2,
-                fillOpacity: 0.15
-            }).addTo(map);
-            exit(0);
-
-            var entities;
-            entityManager.qmlLog("JS: Attempting to retrieve entity list from backend.");
-            entityManager.getEntityList("", function(entities) {
-                entityManager.qmlLog("JS: Received entity list of length: " + entities.length + " in JS.");
-            });
+            // var entities;
+            // entityManager.qmlLog("JS: Attempting to retrieve entity list from backend.");
+            // entityManager.getEntityList("", function(entities) {
+            //     entityManager.qmlLog("JS: Received entity list of length: " + entities.length + " in JS.");
+            // });
         }
 
         else {
@@ -306,6 +296,25 @@ document.addEventListener("DOMContentLoaded", function() {
     /* ----------------------------- MAIN LOOP ----------------------------- */
     const userPos = {lat: -37.814, lng: 144.963};
     updateUserPosition(userPos);
+
+    var lat;
+    entityManager.getEntityLatRadByUID("TEST", function(lat) {
+        entityManager.qmlLog("JS: Test entity logged latitude of " + lat);
+    });
+
+    var lng;
+    entityManager.getEntityLongRadByUID("TEST", function(lng) {
+        entityManager.qmlLog("JS: Test entity logged longitude of " + lng);
+    });
+
+    const latlng = L.latLng(lat, lng);
+    L.marker(latlng, { icon: icons.alert }).addTo(map);
+    var enemyRadius = L.circle(latlng, {
+        radius: 3000, // Metres
+        color: '#FF5722',
+        weight: 2,
+        fillOpacity: 0.15
+    }).addTo(map);
 
     map.on('click', function(event) {
         const coords = event.latlng;
