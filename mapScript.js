@@ -72,7 +72,7 @@ function createEntity() {
                 color: 'orange',
                 fillColor: 'orange',
                 fillOpacity: 0.2,
-                radius: 1000
+                radius: radius
             }).addTo(markersLayer);
 
             entityManager.qmlLog("JS: Added entity marker and circular area to markers layer - Entity UID: " + UID);
