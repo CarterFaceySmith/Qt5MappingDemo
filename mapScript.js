@@ -53,8 +53,6 @@ window.onload = function() {
 };
 
 /* --------------------------- EXTERNAL FUNCTIONS --------------------------- */
-function printAllEntities(){ entityManager.printAllEntities() }
-
 function createEntity() {
     if (entityManager) {
         var name = document.getElementById("name").value.trim();
@@ -91,7 +89,6 @@ function getEntityByUID() {
         var entity = entityManager.getEntityByUID(UID);
         if (entity.UID !== "") {
             entityManager.qmlLog("JS: Entity found from getEntityByUID with UID: " + UID);
-            placeMarkerForEntity(entity); // Place marker for the fetched entity
         } else {
             entityManager.qmlLog("JS: Entity not found from getEntityByUID.");
         }
@@ -287,16 +284,16 @@ document.addEventListener("DOMContentLoaded", function() {
 
         userRing = L.circle(latlng, {
             radius: 3000, // Metres
-            color: '#FF5722',
+            color: 'orange',
             weight: 2,
-            fillOpacity: 0.15
+            fillOpacity: 0.2
         }).addTo(map);
 
         userSmallRing = L.circle(latlng, {
              radius: 1000, // Metres
-             color: '#FF5722',
+             color: 'orange',
              weight: 2,
-             fillOpacity: 0.3,
+             fillOpacity: 0.35,
         }).addTo(map);
 
         userMarker = L.marker(latlng, { icon: icons.plane }).addTo(map);
