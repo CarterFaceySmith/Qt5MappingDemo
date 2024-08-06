@@ -1,10 +1,11 @@
 #include "Entity.h"
 #include <QDebug>
+#include <cmath>
 
 Entity::Entity(QObject *parent)
-    : QObject(parent), m_name("Unknown"), m_type(entityType::UNKNOWN),
+    : QObject(parent), m_name("Unknown"), m_symbol(EntitySymbol::UNKNOWN),
       m_UID("UKN"), m_speed(0.0), m_radius(0.0), m_altitude(0.0),
-      m_latitude(0.0), m_longitude(0.0)
+      m_latitudeRadians(0.0), m_longitudeRadians(0.0)
 {
 }
 
@@ -20,17 +21,16 @@ void Entity::setName(const QString &name)
         emit nameChanged();
     }
 }
-
-entityType Entity::type() const
+EntitySymbol Entity::symbol() const
 {
-    return m_type;
+    return m_symbol;
 }
 
-void Entity::setType(const entityType &type)
+void Entity::setSymbol(const EntitySymbol &symbol)
 {
-    if (m_type != type) {
-        m_type = type;
-        emit typeChanged();
+    if (m_symbol != symbol) {
+        m_symbol = symbol;
+        emit symbolChanged();
     }
 }
 
@@ -86,32 +86,42 @@ void Entity::setRadius(double radius)
     }
 }
 
-double Entity::latitude() const
+double Entity::latitudeRadians() const
 {
-    return m_latitude;
+    return m_latitudeRadians;
 }
 
-void Entity::setLatitude(double latitude)
+void Entity::setLatitudeRadians(double latitudeRadians)
 {
-    if (m_latitude != latitude) {
-        m_latitude = latitude;
-        emit latitudeChanged();
+    if (m_latitudeRadians != latitudeRadians) {
+        m_latitudeRadians = latitudeRadians;
+        emit latitudeRadiansChanged();
     }
 }
 
-double Entity::longitude() const
+double Entity::returnLatAsDeg() const
 {
-    return m_longitude;
+    return (m_latitudeRadians * 180) / M_PI;
 }
 
-void Entity::setLongitude(double longitude)
+double Entity::longitudeRadians() const
 {
-    if (m_longitude != longitude) {
-        m_longitude = longitude;
-        emit longitudeChanged();
+    return m_longitudeRadians;
+}
+
+void Entity::setLongitudeRadians(double longitudeRadians)
+{
+    if (m_longitudeRadians != longitudeRadians) {
+        m_longitudeRadians = longitudeRadians;
+        emit longitudeRadiansChanged();
     }
+}
+
+double Entity::returnLongAsDeg() const
+{
+    return (m_longitudeRadians * 180) / M_PI;
 }
 
 void Entity::logMessage(const QString &message) {
-    qDebug() << "Entity logged message: " << message;
+    qDebug() << "CPP: Entity logged message: " << message;
 }

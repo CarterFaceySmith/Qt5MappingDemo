@@ -3,7 +3,7 @@
 #include <QQmlContext>
 #include <QtWebEngineWidgets>
 #include <QUrl>
-#include "Entity.h"
+// #include "Entity.h"
 #include "EntityManager.h"
 
 int main(int argc, char *argv[])
@@ -13,12 +13,16 @@ int main(int argc, char *argv[])
     QQmlApplicationEngine engine;
 
     // Create instances of the C++ classes
-    Entity myEntity;
-    EntityManager myEntityManager;
+    EntityManager entityManager;
+    entityManager.createEntity("C", "CHARIOT", 1000, -37.814, 144.963);
+    entityManager.createEntity("D", "HANGED", 1000, -37.714, 144.863);
+    entityManager.createEntity("J", "JOKER", 1000, -37.914, 144.863);
+    entityManager.createEntity("Devil1", "DVL001", 500, -37.804, 144.953);
+    entityManager.createEntity("Devil2", "DVL002", 500, -37.714, 144.963);
+    entityManager.createEntity("Devil3", "DVL003", 700, -37.914, 144.873);
 
     // Expose the objects to QML
-    engine.rootContext()->setContextProperty("myEntity", &myEntity);
-    engine.rootContext()->setContextProperty("myEntityManager", &myEntityManager);
+    engine.rootContext()->setContextProperty("entityManager", &entityManager);
 
     // Load the QML file
     engine.load(QUrl(QStringLiteral("qrc:/main.qml")));
