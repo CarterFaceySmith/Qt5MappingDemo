@@ -1,3 +1,7 @@
 build*
-*.pro.user
+*.pro.user*
 config*
+*.cfg
+*.osm.pbf
+mapnik.xml
+*sync-conflict*
