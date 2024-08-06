@@ -18,7 +18,7 @@ void EntityManager::createEntity(const QString &name, const QString &UID, double
 
     m_database.append(entity);
     emit entityCreated(entity);
-    qDebug() << "CPP; Created entity with name" << name << "and UID" << UID << "at lat" << latitude << "long" << longitude;
+    qDebug() << "CPP: Created entity with name" << name << "and UID" << UID << "at lat" << latitude << "long" << longitude;
 }
 
 Entity* EntityManager::getEntityByUID(const QString &UID) const
