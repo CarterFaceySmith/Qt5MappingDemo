@@ -66,7 +66,18 @@ function createEntity() {
         var newEntity = entityManager.createEntity(name, UID, radius, latitude, longitude);
         if (newEntity) {
             entityManager.qmlLog("JS: createEntity() created entity with name: " + name);
-            // TODO:  Place marker for the fetched entity
+
+            const latlng = L.latLng(latitude, longitude);
+            var marker = L.marker(latlng, { icon: icons.alert }).addTo(markersLayer);
+
+            L.circle(latlng, {
+                color: 'orange',
+                fillColor: 'orange',
+                fillOpacity: 0.2,
+                radius: 1000
+            }).addTo(markersLayer);
+
+            entityManager.qmlLog("JS: Added entity marker and circular area to markers layer - Entity UID: " + UID);
         }
         else {
             entityManager.qmlLog("JS: createEntity() failed to create an entity.");
