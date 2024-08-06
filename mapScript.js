@@ -1,6 +1,5 @@
 /* -------------------------- EXTERNAL VARIABLES --------------------------- */
-var map;
-var entityManager;
+var map, L, entityManager;
 var markersLayer;
 const icons = {
     user: L.divIcon({
@@ -96,39 +95,6 @@ function updateEntityId() {
     }
 }
 
-// FIXME: Not working currently, receiving Promise object instead of list.
-function getEntities() {
-    if (entityManager) {
-        var entities;
-        entityManager.getEntityList(function(entities) {
-            entityManager.qmlLog("JS: Attempting to retrieve entity list from backend.");
-        });
-        entityManager.qmlLog("JS: Received entity list of length: " + entities.length + " in JS.");
-
-        // var entityDatabaseModel = [];
-
-        // // Iterate through the list of QObject pointers
-        // for (var i = 0; i < entities.length; ++i) {
-        //     var entity = entities[i];
-        //     // Access the properties and push to the model
-        //     entityDatabaseModel.push({
-        //         name: entity.name,
-        //         UID: entity.UID,
-        //         radius: entity.radius,
-        //         latitude: entity.latitude,
-        //         longitude: entity.longitude
-        //     });
-        // }
-        // logMessage("JS: Moved entities to entityDatabaseModel of length: " + entityDatabaseModel.length + " in JS.");
-
-        // return entityDatabaseModel;
-    }
-    else {
-        entityManager.qmlLog("JS: No entities in database.");
-        return [];
-    }
-}
-
 function logMessage() {
     if (entityManager) {
         var message = document.getElementById("logMessage").value.trim();
@@ -138,14 +104,12 @@ function logMessage() {
 
 function testSuite() {
     if (entityManager) {
-        // Create the entity
         var testEnt = entityManager.createEntity("Test Entity", "TEST", 1000.0, -37.864, 144.963);
+
         if (testEnt) {
             entityManager.qmlLog("JS: Successfully created test entity with UID TEST.");
 
-            var lat, lng;
-            var marker;
-            var entityList;
+            var lat, lng, marker, entityList;
 
             markersLayer = L.layerGroup().addTo(map);
 
@@ -228,7 +192,7 @@ function testSuite() {
 
             entityManager.setEntityLongRadByUID("TEST", 144.300);
 
-            // Retrieve the updated longitude async
+            // Retrieve the updated longitude asynchronously
             new Promise((resolve, reject) => {
                 entityManager.getEntityLongRadByUID("TEST", function(updatedLng) {
                     if (updatedLng !== undefined) {
