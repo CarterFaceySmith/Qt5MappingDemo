@@ -175,9 +175,13 @@ function testSuite() {
                     if (entity.latitude !== undefined && entity.longitude !== undefined) {
                         const entityLatLng = L.latLng(entity.latitude, entity.longitude);
                         L.marker(entityLatLng, { icon: icons.alert }).addTo(markersLayer);
+
+                        // Determine the circle color based on the entity name
+                        const circleColor = entity.name && entity.name.startsWith("Devil") ? 'red' : 'blue';
+
                         L.circle(entityLatLng, {
-                            color: 'purple',
-                            fillColor: 'purple',
+                            color: circleColor,
+                            fillColor: circleColor,
                             fillOpacity: 0.2,
                             radius: 1000
                         }).addTo(markersLayer);
@@ -208,6 +212,8 @@ function testSuite() {
             });
         }
     }
+
+    entityManager.printAllEntities();
 }
 
 /* ----------------------------- MAIN FUNCTION ----------------------------- */
