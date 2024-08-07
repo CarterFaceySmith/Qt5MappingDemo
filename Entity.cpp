@@ -43,6 +43,7 @@ void Entity::setUID(const QString &UID)
 {
     if (m_UID != UID) {
         m_UID = UID;
+        qDebug() << "CPP: Entity UID changed to " << UID;
         emit UIDChanged();
     }
 }

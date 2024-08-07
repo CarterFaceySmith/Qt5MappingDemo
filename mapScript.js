@@ -99,7 +99,7 @@ function updateEntityId() {
     if (entityManager) {
         var currentId = document.getElementById("UID").value.trim();
         var newId = document.getElementById("newId").value.trim();
-        entityManager.updateEntityId(currentId, newId);
+        entityManager.setEntityUID(currentId, newId);
     }
 }
 
@@ -107,6 +107,12 @@ function logMessage() {
     if (entityManager) {
         var message = document.getElementById("logMessage").value.trim();
         entityManager.logMessage(message);
+    }
+}
+
+function printAllEntities() {
+    if (entityManager) {
+        entityManager.printAllEntities();
     }
 }
 
@@ -311,14 +317,32 @@ document.addEventListener("DOMContentLoaded", function() {
         });
     }
 
+    function haversineDistance(lat1, lon1, lat2, lon2) {
+        const R = 6371; // Radius of Earth in km
+        const dLat = (lat2 - lat1) * (Math.PI / 180);
+        const dLon = (lon2 - lon1) * (Math.PI / 180);
+        const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                  Math.cos(lat1 * (Math.PI / 180)) * Math.cos(lat2 * (Math.PI / 180)) *
+                  Math.sin(dLon / 2) * Math.sin(dLon / 2);
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        return R * c; // Distance in km
+    }
+
     function drawLines() {
         linesLayer.clearLayers();
         lines.forEach(line => {
             if (line.start && line.end) {
-                L.polyline([[line.start.lat, line.start.lon],
-                            [line.end.lat, line.end.lon]], {
-                            color: 'black',
-                            weight: 2
+                const lat1 = line.start.lat;
+                const lon1 = line.start.lon;
+                const lat2 = line.end.lat;
+                const lon2 = line.end.lon;
+
+                const distance = haversineDistance(lat1, lon1, lat2, lon2);
+                entityManager.qmlLog(`Distance between (${lat1.toFixed(2)}, ${lon1.toFixed(2)}) and (${lat2.toFixed(2)}, ${lon2.toFixed(2)}): ${distance.toFixed(2)} km`);
+
+                L.polyline([[lat1, lon1], [lat2, lon2]], {
+                    color: 'black',
+                    weight: 2
                 }).addTo(linesLayer);
             }
         });
