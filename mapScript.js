@@ -117,11 +117,21 @@ function printAllEntities() {
 }
 
 function testSuite() {
+    let testResults = {
+        createdEntity: false,
+        retrievedLat: false,
+        retrievedLng: false,
+        retrievedList: false,
+        updatedLat: false,
+        updatedLng: false,
+    };
+
     if (entityManager) {
         var testEnt = entityManager.createEntity("Test Entity", "TEST", 1000.0, -37.864, 144.963);
 
         if (testEnt) {
             entityManager.qmlLog("JS: Successfully created test entity with UID TEST.");
+            testResults.createdEntity = true;
 
             var lat, lng, marker, entityList;
 
@@ -169,6 +179,28 @@ function testSuite() {
                 entityManager.qmlLog("JS: Test entity logged longitude of " + lng);
                 entityManager.qmlLog("JS: Received entity list from DB of length " + entityList.length);
 
+                if (lat === -37.864) {
+                    entityManager.qmlLog("JS: Latitude assertion passed.");
+                    testResults.retrievedLat = true;
+                } else {
+                    entityManager.qmlLog(`JS: Latitude assertion failed. Expected -37.864, but got ${lat}`);
+                }
+
+                if (lng === 144.963) {
+                    entityManager.qmlLog("JS: Longitude assertion passed.");
+                    testResults.retrievedLng = true;
+                } else {
+                    entityManager.qmlLog(`JS: Longitude assertion failed. Expected 144.963, but got ${lng}`);
+                }
+
+                testResults.retrievedList = Array.isArray(entityList);
+
+                if (testResults.retrievedList) {
+                    entityManager.qmlLog("JS: Entity list assertion passed.");
+                } else {
+                    entityManager.qmlLog("JS: Entity list assertion failed. Expected an array, but got a non-array.");
+                }
+
                 if (marker) {
                     markersLayer.removeLayer(marker);
                 }
@@ -190,7 +222,6 @@ function testSuite() {
                         const entityLatLng = L.latLng(entity.latitude, entity.longitude);
                         L.marker(entityLatLng, { icon: icons.alert }).addTo(markersLayer);
 
-                        // Determine the circle color based on the entity name
                         const circleColor = entity.name && entity.name.startsWith("Devil") ? 'red' : 'blue';
 
                         L.circle(entityLatLng, {
@@ -204,31 +235,74 @@ function testSuite() {
                     }
                 });
 
-            }).catch((error) => {
-                entityManager.qmlLog("JS: Error - " + error);
-            });
+                // Update the entity and check new values
+                var updatePromises = [];
 
-            entityManager.setEntityLongRadByUID("TEST", 144.300);
-
-            // Retrieve the updated longitude asynchronously
-            new Promise((resolve, reject) => {
-                entityManager.getEntityLongRadByUID("TEST", function(updatedLng) {
-                    if (updatedLng !== undefined) {
-                        resolve(updatedLng);
+                entityManager.setEntityLongRadByUID("TEST", 144.300);
+                updatePromises.push(new Promise((resolve, reject) => {
+                    entityManager.getEntityLongRadByUID("TEST", function(updatedLng) {
+                        if (updatedLng !== undefined) {
+                            resolve(updatedLng);
+                        } else {
+                            reject("Failed to retrieve updated longitude");
+                        }
+                    });
+                }).then((updatedLng) => {
+                    entityManager.qmlLog("JS: Test entity logged an updated longitude of " + updatedLng);
+                    if (updatedLng === 144.300) {
+                        entityManager.qmlLog("JS: Updated longitude assertion passed.");
+                        testResults.updatedLng = true;
                     } else {
-                        reject("Failed to retrieve updated longitude");
+                        entityManager.qmlLog(`JS: Updated longitude assertion failed. Expected 144.300, but got ${updatedLng}`);
                     }
-                });
-            }).then((updatedLng) => {
-                entityManager.qmlLog("JS: Test entity logged an updated longitude of " + updatedLng);
+                }).catch((error) => {
+                    entityManager.qmlLog("JS: Error - " + error);
+                }));
+
+                entityManager.setEntityLatRadByUID("TEST", -34.30);
+                updatePromises.push(new Promise((resolve, reject) => {
+                    entityManager.getEntityLatRadByUID("TEST", function(updatedLat) {
+                        if (updatedLat !== undefined) {
+                            resolve(updatedLat);
+                        } else {
+                            reject("Failed to retrieve updated latitude");
+                        }
+                    });
+                }).then((updatedLat) => {
+                    entityManager.qmlLog("JS: Test entity logged an updated latitude of " + updatedLat);
+                    // Assertion using qmlLog
+                    if (updatedLat === -34.30) {
+                        entityManager.qmlLog("JS: Updated latitude assertion passed.");
+                        testResults.updatedLat = true;
+                    } else {
+                        entityManager.qmlLog(`JS: Updated latitude assertion failed. Expected -34.30, but got ${updatedLat}`);
+                    }
+                }).catch((error) => {
+                    entityManager.qmlLog("JS: Error - " + error);
+                }));
+
+                // Wait for all update promises to complete
+                return Promise.all(updatePromises);
             }).catch((error) => {
                 entityManager.qmlLog("JS: Error - " + error);
+            }).finally(() => {
+                // Print list
+                entityManager.printAllEntities();
+
+                // Print the summary of tests
+                let passCount = Object.values(testResults).filter(v => v === true).length;
+                let totalTests = Object.keys(testResults).length;
+                let summary = `Test Summary: ${passCount}/${totalTests} tests passed.`;
+
+                entityManager.qmlLog("JS: " + summary);
+                console.log(summary); // Log to console as well in case
             });
         }
     }
-
-    entityManager.printAllEntities();
 }
+
+
+
 
 /* ----------------------------- MAIN FUNCTION ----------------------------- */
 document.addEventListener("DOMContentLoaded", function() {
