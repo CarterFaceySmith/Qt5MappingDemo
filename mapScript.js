@@ -351,20 +351,30 @@ document.addEventListener("DOMContentLoaded", function() {
     function removePoint(latlng) {
         const tolerance = 0.01;
 
+        // Find the index of the point to be removed
         const index = points.findIndex(point => {
             return Math.hypot(point.lat - latlng.lat, point.lon - latlng.lng) < tolerance;
         });
 
         if (index !== -1) {
+            // Remove the point from the points array
             points.splice(index, 1);
-            lines = lines.filter(line => line.start !== points[index] && line.end !== points[index]);
-            redrawAllLayers();
-        }
 
-        else {
+            // Remove lines that start or end at the point
+            lines = lines.filter(line =>
+                !(
+                    (Math.hypot(line.start.lat - latlng.lat, line.start.lon - latlng.lng) < tolerance) ||
+                    (Math.hypot(line.end.lat - latlng.lat, line.end.lon - latlng.lng) < tolerance)
+                )
+            );
+
+            // Redraw all layers to reflect changes
+            redrawAllLayers();
+        } else {
             entityManager.qmlLog("JS: removePoint() found no point, or point is too far away.");
         }
     }
+
 
     function moveUserPosition(deltaLat, deltaLng) {
         const newLat = userMarker.getLatLng().lat + deltaLat;
