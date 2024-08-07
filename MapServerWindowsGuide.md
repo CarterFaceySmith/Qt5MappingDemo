@@ -1,5 +1,7 @@
 Partial guide to creating and running a map tile server for OpenStreetMap (OSM) tiles on Windows, tailored to avoid using Docker (normally you'd likely set this up as an Apache server or something and run it in a container).
 
+Further resource: [Switch2OSM - Building a tile server](https://switch2osm.org/serving-tiles/manually-building-a-tile-server-debian-12)
+
 Uses: PostgreSQL with PostGIS, osm2pgsql, and TileStache.
 
 1. Install PostgreSQL and PostGIS
