@@ -5,7 +5,5 @@
         <file>mapScript.js</file>
         <file>mapStyle.css</file>
     </qresource>
-    <qresource prefix="/Assets">
-        <file>melbourne-roads-map.jpg</file>
-    </qresource>
+    <qresource prefix="/Assets"/>
 </RCC>
