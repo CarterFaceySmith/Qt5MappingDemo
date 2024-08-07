@@ -99,7 +99,7 @@ function updateEntityId() {
     if (entityManager) {
         var currentId = document.getElementById("UID").value.trim();
         var newId = document.getElementById("newId").value.trim();
-        entityManager.updateEntityId(currentId, newId);
+        entityManager.setEntityUID(currentId, newId);
     }
 }
 
@@ -107,6 +107,12 @@ function logMessage() {
     if (entityManager) {
         var message = document.getElementById("logMessage").value.trim();
         entityManager.logMessage(message);
+    }
+}
+
+function printAllEntities() {
+    if (entityManager) {
+        entityManager.printAllEntities();
     }
 }
 
