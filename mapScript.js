@@ -1,121 +1,253 @@
-/* -------------------------- EXTERNAL VARIABLES --------------------------- */
-var map, L, entityManager;
-var markersLayer;
-const icons = {
-    user: L.divIcon({
-                        className: 'user-position-icon',
-                        html: '<i class="material-icons">flight</i>',
-                        iconSize: [24, 24],
-                        iconAnchor: [12, 12]
-                    }),
-    plane: L.divIcon({
-                         className: 'user-position-icon',
-                         html: '<i class="material-icons">flight</i>',
-                         iconSize: [24, 24],
-                         iconAnchor: [12, 12],
-                         draggable: false
-                     }),
-    star: L.divIcon({
-                        className: 'additional-icon',
-                        html: '<i class="material-icons">star</i>',
-                        iconSize: [24, 24],
-                        iconAnchor: [12, 12],
-                        draggable: true // FIXME: Draggable icons not working - potential map layering issue?
-                    }),
-    heart: L.divIcon({
-                         className: 'additional-icon',
-                         html: '<i class="material-icons">favorite</i>',
-                         iconSize: [24, 24],
-                         iconAnchor: [12, 12],
-                     }),
-    check: L.divIcon({
-                         className: 'additional-icon',
-                         html: '<i class="material-icons">check</i>',
-                         iconSize: [24, 24],
-                         iconAnchor: [12, 12],
-                     }),
-    alert: L.divIcon({
-                         className: 'additional-icon',
-                         html: '<i class="material-icons">warning</i>',
-                         iconSize: [24, 24],
-                         iconAnchor: [12, 12],
-                     })
-};
+// Initialize the map
+const map = L.map('map').setView([51.505, -0.09], 13); // Center the map at a default location
 
-/* ------------------------------- WEBCHANNEL ------------------------------- */
+// Add a tile layer to the map
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+}).addTo(map);
+
+// Function to create a custom diamond marker
+function createDiamondMarker(latLng, color) {
+    const icon = L.divIcon({
+        className: 'diamond-icon',
+        html: `<div style="background-color: ${color}; width: 20px; height: 20px; transform: rotate(45deg);"></div>`,
+        iconSize: [12, 12],
+        iconAnchor: [12, 12],
+    });
+
+    return L.marker(latLng, { icon });
+}
+
+// Create the player marker with a colored circle
+const playerLatLng = [51.505, -0.09]; // Initial player position
+const playerMarker = createDiamondMarker(playerLatLng, 'white').addTo(map);
+
+// Add a circle around the player marker
+L.circle(playerLatLng, {
+    color: 'white',
+    radius: 1000,
+    fillOpacity: 0.05
+}).addTo(map);
+
+// Create five moving entity markers
+const entities = [];
+const entityPositions = [
+    [51.515, -0.1],
+    [51.515, -0.12],
+    [51.525, -0.1],
+    [51.525, -0.12],
+    [51.535, -0.1]
+];
+const entityCircles = [];
+const entityMarkers = entityPositions.map((pos, index) => {
+    const color = `hsl(${index * 72}, 100%, 50%)`; // Different colors for each entity
+    const marker = createDiamondMarker(pos, color).addTo(map);
+
+    // Create a circle around each entity marker
+    const circle = L.circle(pos, {
+        color: color,
+        radius: 2000, // Radius of the circle
+        fillOpacity: 0.05 // No fill
+    }).addTo(map);
+
+    entities.push({
+        marker,
+        color,
+        circle,
+        originalLatLng: L.latLng(pos),
+        direction: Math.random() * 2 * Math.PI, // Random initial direction
+        speed: 0.00005,
+        stopDuration: Math.random() * 2000 + 2000, // Random stop duration between 2-4 seconds
+        timeStopped: 0
+    });
+    return marker;
+});
+
+// Function to animate the entities
+function animateEntities() {
+    entities.forEach(entity => {
+        const { marker, circle, color, speed } = entity;
+
+        function move(timestamp) {
+            // Update stop timer
+            entity.timeStopped += timestamp - (entity.lastTimestamp || timestamp);
+            entity.lastTimestamp = timestamp;
+
+            if (entity.timeStopped < entity.stopDuration) {
+                // Continue moving
+                const latLng = marker.getLatLng();
+                const newLat = latLng.lat + Math.sin(entity.direction) * speed;
+                const newLng = latLng.lng + Math.cos(entity.direction) * speed;
+
+                // Set new position for marker
+                marker.setLatLng([newLat, newLng]);
+
+                // Set new position for circle
+                circle.setLatLng([newLat, newLng]);
+
+                // Randomly change direction occasionally
+                if (Math.random() < 0.01) {
+                    entity.direction = Math.random() * 2 * Math.PI;
+                }
+
+                // Randomly stop or reverse direction occasionally
+                if (Math.random() < 0.01) {
+                    entity.stopDuration = Math.random() * 2000 + 2000; // Reset stop duration
+                    entity.timeStopped = 0;
+                } else if (Math.random() < 0.01) {
+                    entity.direction += Math.PI; // Reverse direction
+                }
+            } else {
+                // Stop moving
+                entity.speed = 0;
+
+                // Randomly restart moving or change direction
+                if (Math.random() < 0.01) {
+                    entity.speed = 0.00005;
+                    entity.stopDuration = Math.random() * 2000 + 2000;
+                    entity.timeStopped = 0;
+                }
+            }
+
+            // Schedule the next frame
+            requestAnimationFrame(move);
+        }
+
+        move(0); // Initialize timestamp
+    });
+}
+
+// Start animating entities
+animateEntities();
+
+// /* -------------------------- EXTERNAL VARIABLES --------------------------- */
+var L, entityManager;
+var markersLayer;
+// const icons = {
+//     user: L.divIcon({
+//         className: 'user-position-icon',
+//         html: '<i class="material-icons">flight</i>',
+//         iconSize: [24, 24],
+//         iconAnchor: [12, 12]
+//     }),
+//     plane: L.divIcon({
+//         className: 'user-position-icon',
+//         html: '<i class="material-icons">flight</i>',
+//         iconSize: [24, 24],
+//         iconAnchor: [12, 12],
+//         draggable: false
+//     }),
+//     star: L.divIcon({
+//         className: 'additional-icon',
+//         html: '<i class="material-icons">star</i>',
+//         iconSize: [24, 24],
+//         iconAnchor: [12, 12],
+//         draggable: true
+//     }),
+//     heart: L.divIcon({
+//         className: 'additional-icon',
+//         html: '<i class="material-icons">favorite</i>',
+//         iconSize: [24, 24],
+//         iconAnchor: [12, 12]
+//     }),
+//     check: L.divIcon({
+//         className: 'additional-icon',
+//         html: '<i class="material-icons">check</i>',
+//         iconSize: [24, 24],
+//         iconAnchor: [12, 12]
+//     }),
+//     alert: L.divIcon({
+//         className: 'additional-icon',
+//         html: '<i class="material-icons">warning</i>',
+//         iconSize: [24, 24],
+//         iconAnchor: [12, 12]
+//     })
+// };
+
+// /* ------------------------------- WEBCHANNEL ------------------------------- */
 function initWebChannel(channel) {
     entityManager = channel.objects.entityManager;
     testSuite();
 }
 
 window.onload = function() {
-    var channel = new QWebChannel(qt.webChannelTransport, initWebChannel);
+    new QWebChannel(qt.webChannelTransport, initWebChannel);
 };
 
-/* --------------------------- EXTERNAL FUNCTIONS --------------------------- */
+// /* --------------------------- HELPER FUNCTIONS ---------------------------- */
+const ANIMATION_RADIUS = 0.001;
+const ANIMATION_SPEED = 0.01;
+const PATTERN_PERIOD = 5000;
+
+function updateEntityLayer(UID, latLng, radius, color) {
+    if (!entityLayers[UID]) return;
+
+    // Remove existing layers
+    markersLayer.removeLayer(entityLayers[UID].marker);
+    markersLayer.removeLayer(entityLayers[UID].circle);
+
+    // Add new layers
+    const marker = L.marker(latLng, { icon: icons.alert });
+    const circle = L.circle(latLng, {
+        color: color,
+        fillColor: color,
+        fillOpacity: 0.2,
+        radius: radius
+    });
+
+    marker.addTo(markersLayer);
+    circle.addTo(markersLayer);
+
+    // Update the stored layers
+    entityLayers[UID] = { marker, circle };
+}
+
 function createEntity() {
     if (entityManager) {
-        var name = document.getElementById("name").value.trim();
-        var UID = document.getElementById("UID").value.trim();
-        var radius = parseFloat(document.getElementById("radius").value.trim());
-        var latitude = parseFloat(document.getElementById("latitude").value.trim());
-        var longitude = parseFloat(document.getElementById("longitude").value.trim());
+        const name = document.getElementById("name").value.trim();
+        const UID = document.getElementById("UID").value.trim();
+        const radius = parseFloat(document.getElementById("radius").value.trim());
+        const latitude = parseFloat(document.getElementById("latitude").value.trim());
+        const longitude = parseFloat(document.getElementById("longitude").value.trim());
 
-        var newEntity = entityManager.createEntity(name, UID, radius, latitude, longitude);
+        const newEntity = entityManager.createEntity(name, UID, radius, latitude, longitude);
         if (newEntity) {
-            entityManager.qmlLog("JS: createEntity() created entity with name: " + name);
-
-            const latlng = L.latLng(latitude, longitude);
-            var marker = L.marker(latlng, { icon: icons.alert }).addTo(markersLayer);
-
-            L.circle(latlng, {
-                color: 'orange',
-                fillColor: 'orange',
-                fillOpacity: 0.2,
-                radius: radius
-            }).addTo(markersLayer);
-
-            entityManager.qmlLog("JS: Added entity marker and circular area to markers layer - Entity UID: " + UID);
-        }
-        else {
-            entityManager.qmlLog("JS: createEntity() failed to create an entity.");
+            entityManager.qmlLog("JS: Created entity with name: " + name);
+            updateEntityLayer(UID, L.latLng(latitude, longitude), radius, 'orange');
+        } else {
+            entityManager.qmlLog("JS: Failed to create an entity.");
         }
     }
 }
 
 function getEntityByUID() {
     if (entityManager) {
-        var UID = document.getElementById("UID").value.trim();
-        var entity = entityManager.getEntityByUID(UID);
-        if (entity.UID !== "") {
-            entityManager.qmlLog("JS: Entity found from getEntityByUID with UID: " + UID);
+        const UID = document.getElementById("UID").value.trim();
+        const entity = entityManager.getEntityByUID(UID);
+        if (entity.UID) {
+            entityManager.qmlLog("JS: Entity found with UID: " + UID);
         } else {
-            entityManager.qmlLog("JS: Entity not found from getEntityByUID.");
+            entityManager.qmlLog("JS: Entity not found with UID: " + UID);
         }
     }
 }
 
 function updateEntityId() {
     if (entityManager) {
-        var currentId = document.getElementById("UID").value.trim();
-        var newId = document.getElementById("newId").value.trim();
+        const currentId = document.getElementById("UID").value.trim();
+        const newId = document.getElementById("newId").value.trim();
         entityManager.setEntityUID(currentId, newId);
     }
 }
 
 function logMessage() {
     if (entityManager) {
-        var message = document.getElementById("logMessage").value.trim();
-        entityManager.logMessage(message);
+        const message = document.getElementById("logMessage").value.trim();
+        entityManager.qmlLog(message);
     }
 }
 
-function printAllEntities() {
-    if (entityManager) {
-        entityManager.printAllEntities();
-    }
-}
-
+/* ---------------------------- TEST SUITE ------------------------------- */
 function testSuite() {
     let testResults = {
         createdEntity: false,
@@ -300,9 +432,6 @@ function testSuite() {
         }
     }
 }
-
-
-
 
 /* ----------------------------- MAIN FUNCTION ----------------------------- */
 document.addEventListener("DOMContentLoaded", function() {
