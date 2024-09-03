@@ -123,46 +123,46 @@ animateEntities();
 // /* -------------------------- EXTERNAL VARIABLES --------------------------- */
 var L, entityManager;
 var markersLayer;
-// const icons = {
-//     user: L.divIcon({
-//         className: 'user-position-icon',
-//         html: '<i class="material-icons">flight</i>',
-//         iconSize: [24, 24],
-//         iconAnchor: [12, 12]
-//     }),
-//     plane: L.divIcon({
-//         className: 'user-position-icon',
-//         html: '<i class="material-icons">flight</i>',
-//         iconSize: [24, 24],
-//         iconAnchor: [12, 12],
-//         draggable: false
-//     }),
-//     star: L.divIcon({
-//         className: 'additional-icon',
-//         html: '<i class="material-icons">star</i>',
-//         iconSize: [24, 24],
-//         iconAnchor: [12, 12],
-//         draggable: true
-//     }),
-//     heart: L.divIcon({
-//         className: 'additional-icon',
-//         html: '<i class="material-icons">favorite</i>',
-//         iconSize: [24, 24],
-//         iconAnchor: [12, 12]
-//     }),
-//     check: L.divIcon({
-//         className: 'additional-icon',
-//         html: '<i class="material-icons">check</i>',
-//         iconSize: [24, 24],
-//         iconAnchor: [12, 12]
-//     }),
-//     alert: L.divIcon({
-//         className: 'additional-icon',
-//         html: '<i class="material-icons">warning</i>',
-//         iconSize: [24, 24],
-//         iconAnchor: [12, 12]
-//     })
-// };
+const icons = {
+    user: L.divIcon({
+        className: 'user-position-icon',
+        html: '<i class="material-icons">flight</i>',
+        iconSize: [24, 24],
+        iconAnchor: [12, 12]
+    }),
+    plane: L.divIcon({
+        className: 'user-position-icon',
+        html: '<i class="material-icons">flight</i>',
+        iconSize: [24, 24],
+        iconAnchor: [12, 12],
+        draggable: false
+    }),
+    star: L.divIcon({
+        className: 'additional-icon',
+        html: '<i class="material-icons">star</i>',
+        iconSize: [24, 24],
+        iconAnchor: [12, 12],
+        draggable: true
+    }),
+    heart: L.divIcon({
+        className: 'additional-icon',
+        html: '<i class="material-icons">favorite</i>',
+        iconSize: [24, 24],
+        iconAnchor: [12, 12]
+    }),
+    check: L.divIcon({
+        className: 'additional-icon',
+        html: '<i class="material-icons">check</i>',
+        iconSize: [24, 24],
+        iconAnchor: [12, 12]
+    }),
+    alert: L.divIcon({
+        className: 'additional-icon',
+        html: '<i class="material-icons">warning</i>',
+        iconSize: [24, 24],
+        iconAnchor: [12, 12]
+    })
+};
 
 // /* ------------------------------- WEBCHANNEL ------------------------------- */
 function initWebChannel(channel) {
