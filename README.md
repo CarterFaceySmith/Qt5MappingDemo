@@ -11,3 +11,11 @@
     - Init. multiple dummies w/ move
     - Backfill dummy entity data w/ DB entity geometry data
     - Predefine entity flight path data in DB for backfill?
+
+#### Build: Migrate to Qt6
+- PRE-REQS (INCOMPLETE)
+    - Visual Studio configuration for compilation compatibility
+
+#### Build: Integrate with alternate remote codebase
+- PRE-REQS (INCOMPLETE)
+    - Visual Studio configuration for compilation compatibility
