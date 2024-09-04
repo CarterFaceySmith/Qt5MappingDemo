@@ -57,44 +57,6 @@
     </div>
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
     <script src="qrc:///qtwebchannel/qwebchannel.js"></script>
-    <script>
-            // Initialize the map
-            const map = L.map('map').setView([51.505, -0.09], 13);
-
-            // Add tile layer to the map
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-            }).addTo(map);
-
-            // Function to create a diamond marker
-            function createDiamondMarker(latLng, color) {
-                return L.marker(latLng, {
-                    icon: L.divIcon({
-                        className: 'diamond-icon',
-                        html: `<div style="background-color: ${color}; width: 20px; height: 20px; transform: rotate(45deg);"></div>`,
-                        iconSize: [20, 20],
-                        iconAnchor: [10, 10]
-                    })
-                });
-            }
-
-            // Example marker setup
-            const playerLatLng = [51.505, -0.09];
-            const playerMarker = createDiamondMarker(playerLatLng, 'white').addTo(map);
-
-            // Example entity markers setup
-            const entityPositions = [
-                [51.515, -0.1],
-                [51.515, -0.12],
-                [51.525, -0.1],
-                [51.525, -0.12],
-                [51.535, -0.1]
-            ];
-
-            entityPositions.forEach((pos, index) => {
-                const color = `hsl(${index * 72}, 100%, 50%)`;
-                createDiamondMarker(pos, color).addTo(map);
-            });
-        </script>
+    <script src="qrc:///mapScript.js"></script>
     </body>
 </html>
