@@ -1,3 +1,9 @@
+const map = L.map('map').setView([-37.814, 144.963], 13); // Melbourne
+let currentBaseLayer;
+let markersLayer = L.layerGroup().addTo(map);
+let linesLayer = L.layerGroup().addTo(map);
+let entitiesLayer = L.layerGroup().addTo(map);
+
 // Function to create a diamond marker
 function createDiamondMarker(latLng, color) {
     return L.marker(latLng, {
@@ -50,6 +56,12 @@ function logMessage() {
     }
 }
 
+function printAllEntities() {
+    if (entityManager) {
+        entityManager.printAllEntities();
+    }
+}
+
 // Test Suite
 function testSuite() {
     if (!entityManager) return;
@@ -69,54 +81,78 @@ function testSuite() {
         entityManager.qmlLog("JS: Successfully created test entity with UID TEST.");
         testResults.createdEntity = true;
 
-        markersLayer = L.layerGroup().addTo(map);
-
         const latPromise = new Promise((resolve, reject) => {
-            entityManager.getEntityLatRadByUID("TEST", resultLat => resultLat !== undefined ? resolve(resultLat) : reject("Failed to retrieve latitude"));
+            entityManager.getEntityLatRadByUID("TEST", resultLat => {
+                resultLat !== undefined ? resolve(resultLat) : reject("Failed to retrieve latitude");
+            });
         });
 
         const lngPromise = new Promise((resolve, reject) => {
-            entityManager.getEntityLongRadByUID("TEST", resultLng => resultLng !== undefined ? resolve(resultLng) : reject("Failed to retrieve longitude"));
+            entityManager.getEntityLongRadByUID("TEST", resultLng => {
+                resultLng !== undefined ? resolve(resultLng) : reject("Failed to retrieve longitude");
+            });
         });
 
         const listPromise = new Promise((resolve, reject) => {
-            entityManager.getEntityList(resultList => Array.isArray(resultList) ? resolve(resultList) : reject("Failed to retrieve list or list is not an array"));
+            entityManager.getEntityList(resultList => {
+                Array.isArray(resultList) ? resolve(resultList) : reject("Failed to retrieve list or list is not an array");
+            });
         });
 
-        Promise.all([latPromise, lngPromise, listPromise]).then(([lat, lng, entityList]) => {
-            entityManager.qmlLog(`JS: Test entity logged latitude of ${lat}`);
-            entityManager.qmlLog(`JS: Test entity logged longitude of ${lng}`);
-            entityManager.qmlLog(`JS: Received entity list with ${entityList.length} items`);
+        Promise.all([latPromise, lngPromise, listPromise])
+            .then(([lat, lng, entityList]) => {
+                entityManager.qmlLog(`JS: Test entity logged latitude of ${lat}`);
+                entityManager.qmlLog(`JS: Test entity logged longitude of ${lng}`);
+                entityManager.qmlLog(`JS: Received entity list with ${entityList.length} items`);
 
-            const updateLat = lat + 0.01;
-            const updateLng = lng + 0.01;
+                const updateLat = lat + 0.01;
+                const updateLng = lng + 0.01;
 
-            entityManager.setEntityLatRadByUID("TEST", updateLat);
-            entityManager.setEntityLongRadByUID("TEST", updateLng);
+                // Assuming these methods are asynchronous; handle them appropriately
+                return Promise.all([
+                    new Promise(resolve => entityManager.setEntityLatRadByUID("TEST", updateLat, resolve)),
+                    new Promise(resolve => entityManager.setEntityLongRadByUID("TEST", updateLng, resolve))
+                ]).then(() => Promise.all([
+                    new Promise((resolve, reject) => {
+                        entityManager.getEntityLatRadByUID("TEST", resultLat => {
+                            if (resultLat === updateLat) {
+                                testResults.updatedLat = true;
+                                resolve();
+                            } else {
+                                reject("Latitude update failed.");
+                            }
+                        });
+                    }),
+                    new Promise((resolve, reject) => {
+                        entityManager.getEntityLongRadByUID("TEST", resultLng => {
+                            if (resultLng === updateLng) {
+                                testResults.updatedLng = true;
+                                resolve();
+                            } else {
+                                reject("Longitude update failed.");
+                            }
+                        });
+                    })
+                ]));
+            })
+            .then(() => {
+                entityManager.qmlLog("JS: Latitude and longitude updates verified successfully.");
+            })
+            .catch(error => {
+                entityManager.qmlLog(`JS: ${error}`);
+            })
+            .finally(() => {
+                // Print list
+                entityManager.printAllEntities();
 
-            entityManager.getEntityLatRadByUID("TEST", resultLat => {
-                testResults.updatedLat = resultLat === updateLat;
-                entityManager.qmlLog(testResults.updatedLat ? "JS: Latitude update successful." : "JS: Latitude update failed.");
+                // Print the summary of tests
+                let passCount = Object.values(testResults).filter(v => v === true).length;
+                let totalTests = Object.keys(testResults).length;
+                let summary = `Test Summary: ${passCount}/${totalTests} tests passed.`;
+
+                entityManager.qmlLog("JS: " + summary);
+                console.log(summary); // Log to console as well in case
             });
-
-            entityManager.getEntityLongRadByUID("TEST", resultLng => {
-                testResults.updatedLng = resultLng === updateLng;
-                entityManager.qmlLog(testResults.updatedLng ? "JS: Longitude update successful." : "JS: Longitude update failed.");
-            });
-        }).catch(error => {
-            entityManager.qmlLog(`JS: ${error}`);
-        }).finally(() => {
-            // Print list
-            entityManager.printAllEntities();
-
-            // Print the summary of tests
-            let passCount = Object.values(testResults).filter(v => v === true).length;
-            let totalTests = Object.keys(testResults).length;
-            let summary = `Test Summary: ${passCount}/${totalTests} tests passed.`;
-
-            entityManager.qmlLog("JS: " + summary);
-            console.log(summary); // Log to console as well in case
-        });
     }
 }
 
@@ -267,11 +303,7 @@ function updateEntityId() {
 }
 
 /* ----------------------------- MAP SETUP ----------------------------- */
-const map = L.map('map').setView([-37.814, 144.963], 13); // Melbourne
-let currentBaseLayer;
-let markersLayer = L.layerGroup().addTo(map);
-let linesLayer = L.layerGroup().addTo(map);
-let entitiesLayer = L.layerGroup().addTo(map);
+
 
 updateTileLayer('osm'); // Default map layer
 
