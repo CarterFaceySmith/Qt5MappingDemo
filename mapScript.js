@@ -1,9 +1,9 @@
 /* ----------------------------- MAP SETUP ----------------------------- */
 const map = L.map('map').setView([-37.814, 144.963], 13); // Melbourne
 let currentBaseLayer;
-const markersLayer = L.layerGroup().addTo(map);
-const linesLayer = L.layerGroup().addTo(map);
-const entitiesLayer = L.layerGroup().addTo(map);
+let markersLayer = L.layerGroup().addTo(map);
+let linesLayer = L.layerGroup().addTo(map);
+let entitiesLayer = L.layerGroup().addTo(map);
 
 function updateTileLayer(layerType) {
     if (currentBaseLayer) {
