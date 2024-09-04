@@ -2,7 +2,9 @@
     <qresource prefix="/">
         <file>main.qml</file>
         <file>map.html</file>
-        <file>mapScript.js</file>
+        <file>scripts/main.js</file>
         <file>mapStyle.css</file>
+        <file>scripts/mapUtils.js</file>
+        <file>scripts/entityUtils.js</file>
     </qresource>
 </RCC>
