@@ -1,6 +1,9 @@
 /* ----------------------------- MAP SETUP ----------------------------- */
 const map = L.map('map').setView([-37.814, 144.963], 13); // Melbourne
 let currentBaseLayer;
+const markersLayer = L.layerGroup().addTo(map);
+const linesLayer = L.layerGroup().addTo(map);
+const entitiesLayer = L.layerGroup().addTo(map);
 
 function updateTileLayer(layerType) {
     if (currentBaseLayer) {
@@ -253,10 +256,6 @@ let lines = [];
 let mode = 'scroll';            // Default map mode
 let autoCentreOnPlane = true;
 let firstPoint = null;
-
-const markersLayer = L.layerGroup().addTo(map);
-const linesLayer = L.layerGroup().addTo(map);
-const entitiesLayer = L.layerGroup().addTo(map);
 
 /* ------------------------- INTERNAL FUNCTIONS ------------------------- */
 function redrawAllLayers() {
