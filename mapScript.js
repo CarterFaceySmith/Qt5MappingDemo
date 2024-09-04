@@ -35,17 +35,17 @@ function createDiamondMarker(latLng, color) {
 }
 
 // Player marker setup
-const playerLatLng = [51.505, -0.09];
+const playerLatLng = [-37.814, 144.963];
 const playerMarker = createDiamondMarker(playerLatLng, 'white').addTo(map);
 L.circle(playerLatLng, { color: 'white', radius: 1000, fillOpacity: 0.05 }).addTo(map);
 
 // Entity markers setup
 const entityPositions = [
-    [51.515, -0.1],
-    [51.515, -0.12],
-    [51.525, -0.1],
-    [51.525, -0.12],
-    [51.535, -0.1]
+    [-37.814, 144.961],
+    [-37.814, 144.962],
+    [-37.813, 144.963],
+    [-37.815, 144.963],
+    [-37.816, 144.962]
 ];
 
 const entities = entityPositions.map((pos, index) => {
@@ -252,9 +252,6 @@ const points = [];
 let lines = [];
 let mode = 'scroll';            // Default map mode
 let autoCentreOnPlane = true;
-let userMarker;
-let userRing;
-let userSmallRing;
 let firstPoint = null;
 
 const markersLayer = L.layerGroup().addTo(map);
@@ -265,38 +262,6 @@ const entitiesLayer = L.layerGroup().addTo(map);
 function redrawAllLayers() {
     drawPoints();
     drawLines();
-}
-
-function updateUserPosition(latlng) {
-    if (userMarker) {
-        map.removeLayer(userMarker);
-    }
-    if (userRing) {
-        map.removeLayer(userRing);
-    }
-    if (userSmallRing) {
-        map.removeLayer(userSmallRing);
-    }
-
-    userRing = L.circle(latlng, {
-        radius: 3000, // Metres
-        color: 'orange',
-        weight: 2,
-        fillOpacity: 0.2
-    }).addTo(map);
-
-    userSmallRing = L.circle(latlng, {
-         radius: 1000, // Metres
-         color: 'orange',
-         weight: 2,
-         fillOpacity: 0.35,
-    }).addTo(map);
-
-    userMarker = L.marker(latlng, { icon: icons.plane }).addTo(map);
-
-    if (autoCentreOnPlane) {
-        map.setView(latlng, map.getZoom());
-    }
 }
 
 function drawPoints() {
@@ -365,19 +330,7 @@ function removePoint(latlng) {
     }
 }
 
-
-function moveUserPosition(deltaLat, deltaLng) {
-    const newLat = userMarker.getLatLng().lat + deltaLat;
-    const newLng = userMarker.getLatLng().lng + deltaLng;
-    const newLatLng = L.latLng(newLat, newLng);
-
-    updateUserPosition(newLatLng);
-}
-
 /* ----------------------------- MAIN LOOP ----------------------------- */
-const userPos = {lat: -37.814, lng: 144.963};
-updateUserPosition(userPos);
-
 map.on('click', function(event) {
     const coords = event.latlng;
     if (!coords) return;
@@ -407,25 +360,6 @@ map.on('click', function(event) {
 });
 
 /* -------------------------- EVENT LISTENERS -------------------------- */
-document.addEventListener('keydown', function(event) {
-    const step = 0.001; // Adjust step size as needed
-
-    switch(event.key) {
-    case 'ArrowUp':
-        moveUserPosition(step, 0);
-        break;
-    case 'ArrowDown':
-        moveUserPosition(-step, 0);
-        break;
-    case 'ArrowLeft':
-        moveUserPosition(0, -step);
-        break;
-    case 'ArrowRight':
-        moveUserPosition(0, step);
-        break;
-    }
-});
-
 document.getElementById('add-point').addEventListener('click', function() {
     mode = 'add-point';
     this.classList.add('active');
@@ -470,8 +404,3 @@ document.getElementById('toggle-centre').addEventListener('click', function() {
     autoCentreOnPlane = !autoCentreOnPlane;
     this.classList.toggle('active', autoCentreOnPlane);
 });
-
-document.getElementById("createEntityBtn").addEventListener("click", createEntity);
-document.getElementById("getEntityBtn").addEventListener("click", getEntityByUID);
-document.getElementById("updateEntityBtn").addEventListener("click", updateEntityId);
-document.getElementById("logMessageBtn").addEventListener("click", logMessage);
