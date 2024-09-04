@@ -3,6 +3,8 @@ let currentBaseLayer;
 let markersLayer = L.layerGroup().addTo(map);
 let linesLayer = L.layerGroup().addTo(map);
 let entitiesLayer = L.layerGroup().addTo(map);
+let userMarker;
+let userRing;
 
 // Function to create a diamond marker
 function createDiamondMarker(latLng, color) {
@@ -40,7 +42,7 @@ function updateEntityLayer(UID, latLng, radius, color) {
     markersLayer.removeLayer(entityLayers[UID].marker);
     markersLayer.removeLayer(entityLayers[UID].circle);
 
-    const marker = L.marker(latLng, { icon: icons.alert });
+    const marker = createDiamondMarker(playerLatLng, 'white').addTo(map);
     const circle = L.circle(latLng, { color, fillColor: color, fillOpacity: 0.2, radius });
 
     marker.addTo(markersLayer);
@@ -302,6 +304,29 @@ function updateEntityId() {
     }
 }
 
+function updateUserPosition(latlng) {
+    if (userMarker) {
+        map.removeLayer(userMarker);
+    }
+    if (userRing) {
+        map.removeLayer(userRing);
+    }
+
+    userRing = L.circle(latlng, { color: 'white', radius: 1000, fillOpacity: 0.05 }).addTo(map);
+    userMarker = createDiamondMarker(latlng, 'white').addTo(map);
+
+    if (autoCentreOnPlane) {
+        map.setView(latlng, map.getZoom());
+    }
+}
+
+function moveUserPosition(deltaLat, deltaLng) {
+    const newLat = userMarker.getLatLng().lat + deltaLat;
+    const newLng = userMarker.getLatLng().lng + deltaLng;
+    const newLatLng = L.latLng(newLat, newLng);
+
+    updateUserPosition(newLatLng);
+}
 /* ----------------------------- MAP SETUP ----------------------------- */
 
 
@@ -309,8 +334,8 @@ updateTileLayer('osm'); // Default map layer
 
 // Player marker setup
 const playerLatLng = [-37.814, 144.963];
-const playerMarker = createDiamondMarker(playerLatLng, 'white').addTo(map);
-L.circle(playerLatLng, { color: 'white', radius: 1000, fillOpacity: 0.05 }).addTo(map);
+userMarker = createDiamondMarker(playerLatLng, 'white').addTo(map);
+userRing = L.circle(playerLatLng, { color: 'white', radius: 1000, fillOpacity: 0.05 }).addTo(map);
 
 // Entity markers setup
 const entityPositions = [
@@ -318,7 +343,12 @@ const entityPositions = [
     [-37.814, 144.962],
     [-37.813, 144.963],
     [-37.815, 144.963],
-    [-37.816, 144.962]
+    [-37.816, 144.962],
+    [-37.811, 144.969],
+    [-37.811, 144.968],
+    [-37.811, 144.967],
+    [-37.811, 144.966],
+    [-37.810, 144.967]
 ];
 
 const entities = entityPositions.map((pos, index) => {
@@ -331,7 +361,7 @@ const entities = entityPositions.map((pos, index) => {
         circle,
         latLng: L.latLng(pos),
         direction: Math.random() * 2 * Math.PI,
-        speed: 0.00005,
+        speed: 0.0001,
         stopDuration: Math.random() * 2000 + 2000,
         timeStopped: 0
     };
@@ -434,3 +464,22 @@ document.getElementById('toggle-centre').addEventListener('click', function() {
     autoCentreOnPlane = !autoCentreOnPlane;
     this.classList.toggle('active', autoCentreOnPlane);
 });
+
+document.addEventListener('keydown', function(event) {
+        const step = 0.001; // Adjust step size as needed
+
+        switch(event.key) {
+        case 'ArrowUp':
+            moveUserPosition(step, 0);
+            break;
+        case 'ArrowDown':
+            moveUserPosition(-step, 0);
+            break;
+        case 'ArrowLeft':
+            moveUserPosition(0, -step);
+            break;
+        case 'ArrowRight':
+            moveUserPosition(0, step);
+            break;
+        }
+    });
