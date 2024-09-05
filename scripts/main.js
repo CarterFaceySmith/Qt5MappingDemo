@@ -211,6 +211,7 @@ currentBaseLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.p
 const userLatLng = [-37.814, 144.963];
 userMarker = createDiamondMarker(userLatLng, 'white').addTo(map);
 userRing = L.circle(userLatLng, { color: 'white', radius: 1000, fillOpacity: 0.05 }).addTo(map);
+entityManager.qmlLog("JS: User entity drawn, mapping to entities list now");
 
 entities = entityList.map((entity, index) => {
     if (entity.latitude !== undefined && entity.longitude !== undefined) {
