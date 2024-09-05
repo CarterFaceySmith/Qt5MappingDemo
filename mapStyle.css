@@ -9,25 +9,19 @@ body {
 }
 .leaflet-marker-icon {
     border-radius: 50%;
-    border: 2px solid black;
     background: transparent;
+    border: none;
+    box-shadow: none;
 }
 .leaflet-popup-content {
     width: 150px;
 }
-/* Custom styles for diamond markers */
 .diamond-icon div {
-    background-color: #000; /* Default color, can be overridden by inline styles */
+    background-color: #000;
     width: 15px;
     height: 15px;
-    transform: rotate(45deg); /* Rotate to form a diamond shape */
+    transform: rotate(45deg);
     border-radius: 2px; /* Optional: slight rounding of corners */
-}
-
-/* Ensure no default circles or other marker styles */
-.leaflet-marker-icon {
-    border: none; /* Remove any border if present */
-    box-shadow: none; /* Remove any shadow if present */
 }
 #controls {
     position: absolute;

@@ -92,6 +92,7 @@ function testSuite() {
             entityManager.getEntityList(resultList => {
                 if (Array.isArray(resultList)) {
                     resolve(resultList);
+                    entityList = resultList;
                 } else {
                     reject("Failed to retrieve list or list is not an array");
                 }
@@ -204,10 +205,10 @@ function animateEntities() {
     move(0);
 }
 
-currentBaseLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png');
+currentBaseLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addto(map);
 const userLatLng = [-37.814, 144.963];
 userMarker = createDiamondMarker(userLatLng, 'white').addTo(map);
-userRing = L.circle(playerLatLng, { color: 'white', radius: 1000, fillOpacity: 0.05 }).addTo(map);
+userRing = L.circle(userLatLng, { color: 'white', radius: 1000, fillOpacity: 0.05 }).addTo(map);
 
 entities = entityList.map((entity, index) => {
     if (entity.latitude !== undefined && entity.longitude !== undefined) {
