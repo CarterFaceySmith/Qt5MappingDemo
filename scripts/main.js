@@ -12,6 +12,7 @@ let entityList = [], entities = [];
 let firstPoint = null;
 let autoCentreOnPlane = true;
 let entityLayers = {}; // Added initialization for entityLayers
+let testsDone = false;
 
 function initWebChannel(channel) {
     entityManager = channel.objects.entityManager;
@@ -165,6 +166,7 @@ function testSuite() {
 
                 entityManager.qmlLog("JS: " + summary);
                 console.log(summary); // Log to console as well in case
+                testsDone = true;
             });
     }
 }
@@ -213,6 +215,7 @@ function animateEntities() {
 }
 
 function main() {
+    if(entityManager && map && testsDone)
     currentBaseLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
     const userLatLng = [-37.814, 144.963];
     userMarker = createDiamondMarker(userLatLng, 'white').addTo(map);
