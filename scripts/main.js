@@ -166,6 +166,8 @@ function testSuite() {
 
 // Function to animate entities
 function animateEntities() {
+    entityManager.qmlLog("JS: Entered animateEntities loop, current entities list length: ", entities.length);
+
     function move(timestamp) {
         entities.forEach(entity => {
             const { marker, circle } = entity;
@@ -216,6 +218,7 @@ entities = entityList.map((entity, index) => {
         const color = `hsl(${index * 72}, 100%, 50%)`;
         const marker = createDiamondMarker(entityLatLng, color).addTo(map);
         const circle = L.circle(entityLatLng, { color, radius: 2000, fillOpacity: 0.05 }).addTo(map);
+        entityManager.qmlLog("JS: Wrote to entities list, now of length: ", entities.length);
 
         return {
             marker,
@@ -232,6 +235,7 @@ entities = entityList.map((entity, index) => {
         entityManager.qmlLog("JS: Entity missing latitude or longitude", entity);
         return null; // Filter out entities without valid positions
     }
+
 }).filter(entity => entity !== null); // Filter out null entities
 
 // const color = `hsl(${1 * 72}, 100%, 50%)`;
