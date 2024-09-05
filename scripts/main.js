@@ -1,3 +1,4 @@
+// Initialize the map
 const map = L.map('map').setView([-37.814, 144.963], 13); // Melbourne
 const ANIMATION_RADIUS = 0.001;
 const ANIMATION_SPEED = 0.01;
@@ -7,9 +8,10 @@ let currentBaseLayer, userMarker, userRing, entityManager;
 let markersLayer = L.layerGroup().addTo(map);
 let linesLayer = L.layerGroup().addTo(map);
 let entitiesLayer = L.layerGroup().addTo(map);
-let entityList, entities, points, lines = [];
+let entityList = [], entities = [];
 let firstPoint = null;
 let autoCentreOnPlane = true;
+let entityLayers = {}; // Added initialization for entityLayers
 
 function initWebChannel(channel) {
     entityManager = channel.objects.entityManager;
@@ -48,7 +50,9 @@ function updateEntityLayer(UID, latLng, radius, color) {
 function logMessage() {
     if (entityManager) {
         const message = document.getElementById("logMessage").value.trim();
-        entityManager.qmlLog(message);
+        if (message) { // Added check to ensure message is not empty
+            entityManager.qmlLog(message);
+        }
     }
 }
 
@@ -167,7 +171,7 @@ function testSuite() {
 
 // Function to animate entities
 function animateEntities() {
-    entityManager.qmlLog("JS: Entered animateEntities loop, current entities list length: ", entities.length);
+    entityManager.qmlLog(`JS: Entered animateEntities loop, current entities list length: ${entities.length}`);
 
     function move(timestamp) {
         entities.forEach(entity => {
@@ -221,7 +225,7 @@ function main() {
             const color = `hsl(${index * 72}, 100%, 50%)`;
             const marker = createDiamondMarker(entityLatLng, color).addTo(map);
             const circle = L.circle(entityLatLng, { color, radius: 2000, fillOpacity: 0.05 }).addTo(map);
-            entityManager.qmlLog("JS: Wrote to entities list, now of length: ", entities.length);
+            entityManager.qmlLog(`JS: Wrote to entities list, now of length: ${entities.length}`);
 
             return {
                 marker,
@@ -233,18 +237,9 @@ function main() {
                 timeStopped: 0,
                 lastTimestamp: 0
             };
-        }
-        else {
+        } else {
             entityManager.qmlLog("JS: Entity missing latitude or longitude", entity);
             return null; // Filter out entities without valid positions
         }
 
-    }).filter(entity => entity !== null); // Filter out null entities
-
-    // const color = `hsl(${1 * 72}, 100%, 50%)`;
-    // const entLatLng = [entityList[0].latitude, entities[0].longitude];
-    // const marker = createDiamondMarker(entLatLng, color).addTo(map);
-    // const circle = L.circle([-37.814, 144.961], { color, radius: 2000, fillOpacity: 0.05 }).addTo(map);
-
-    animateEntities();
-}
+    }).filter(entity => entity !== null); //
