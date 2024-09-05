@@ -215,35 +215,36 @@ function animateEntities() {
 }
 
 function main() {
-    if(entityManager && map && testsDone)
-    currentBaseLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
-    const userLatLng = [-37.814, 144.963];
-    userMarker = createDiamondMarker(userLatLng, 'white').addTo(map);
-    userRing = L.circle(userLatLng, { color: 'white', radius: 1000, fillOpacity: 0.05 }).addTo(map);
-    entityManager.qmlLog("JS: User entity drawn, mapping to entities list now");
+    if(entityManager && map && testsDone) {
+        currentBaseLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+        const userLatLng = [-37.814, 144.963];
+        userMarker = createDiamondMarker(userLatLng, 'white').addTo(map);
+        userRing = L.circle(userLatLng, { color: 'white', radius: 1000, fillOpacity: 0.05 }).addTo(map);
+        entityManager.qmlLog("JS: User entity drawn, mapping to entities list now");
 
-    entities = entityList.map((entity, index) => {
-        if (entity.latitude !== undefined && entity.longitude !== undefined) {
-            const entityLatLng = L.latLng(entity.latitude, entity.longitude);
-            const color = `hsl(${index * 72}, 100%, 50%)`;
-            const marker = createDiamondMarker(entityLatLng, color).addTo(map);
-            const circle = L.circle(entityLatLng, { color, radius: 2000, fillOpacity: 0.05 }).addTo(map);
-            entityManager.qmlLog(`JS: Wrote to entities list, now of length: ${entities.length}`);
+        entities = entityList.map((entity, index) => {
+            if (entity.latitude !== undefined && entity.longitude !== undefined) {
+                const entityLatLng = L.latLng(entity.latitude, entity.longitude);
+                const color = `hsl(${index * 72}, 100%, 50%)`;
+                const marker = createDiamondMarker(entityLatLng, color).addTo(map);
+                const circle = L.circle(entityLatLng, { color, radius: 2000, fillOpacity: 0.05 }).addTo(map);
+                entityManager.qmlLog(`JS: Wrote to entities list, now of length: ${entities.length}`);
 
-            return {
-                marker,
-                circle,
-                latLng: entityLatLng,
-                direction: Math.random() * 2 * Math.PI,
-                speed: 0.0001,
-                stopDuration: Math.random() * 2000 + 2000,
-                timeStopped: 0,
-                lastTimestamp: 0
-            };
-        } else {
-            entityManager.qmlLog("JS: Entity missing latitude or longitude", entity);
-            return null; // Filter out entities without valid positions
-        }
+                return {
+                    marker,
+                    circle,
+                    latLng: entityLatLng,
+                    direction: Math.random() * 2 * Math.PI,
+                    speed: 0.0001,
+                    stopDuration: Math.random() * 2000 + 2000,
+                    timeStopped: 0,
+                    lastTimestamp: 0
+                };
+            } else {
+                entityManager.qmlLog("JS: Entity missing latitude or longitude", entity);
+                return null; // Filter out entities without valid positions
+            }
 
-    }).filter(entity => entity !== null); //
+        }).filter(entity => entity !== null); //
+    }
 }
