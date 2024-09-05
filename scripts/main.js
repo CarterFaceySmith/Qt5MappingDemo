@@ -205,7 +205,7 @@ function animateEntities() {
     move(0);
 }
 
-currentBaseLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addto(map);
+currentBaseLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
 const userLatLng = [-37.814, 144.963];
 userMarker = createDiamondMarker(userLatLng, 'white').addTo(map);
 userRing = L.circle(userLatLng, { color: 'white', radius: 1000, fillOpacity: 0.05 }).addTo(map);
