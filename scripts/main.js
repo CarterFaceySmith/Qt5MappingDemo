@@ -5,6 +5,12 @@ let linesLayer = L.layerGroup().addTo(map);
 let entitiesLayer = L.layerGroup().addTo(map);
 let userMarker;
 let userRing;
+let entityList = [];
+let entities = [];
+let points = []; // Ensure points array is declared
+let lines = []; // Ensure lines array is declared
+let entityLayers = {}; // Ensure entityLayers is declared
+let autoCentreOnPlane = true; // Assuming this is a flag for centering
 
 // Function to create a diamond marker
 function createDiamondMarker(latLng, color) {
@@ -12,8 +18,8 @@ function createDiamondMarker(latLng, color) {
         icon: L.divIcon({
             className: 'diamond-icon',
             html: `<div style="background-color: ${color}; width: 20px; height: 20px; transform: rotate(45deg);"></div>`,
-            iconSize: [12, 12],
-            iconAnchor: [12, 12]
+            iconSize: [20, 20], // Changed to [20, 20] to fit the icon
+            iconAnchor: [10, 10] // Adjusted anchor to center the icon
         })
     });
 }
@@ -30,9 +36,9 @@ function updateTileLayer(layerType) {
     };
 
     currentBaseLayer = L.tileLayer(tileLayers[layerType], {
-    attribution: layerType === 'osm'
-                 ? '© OpenStreetMap contributors'
-                 : '© OpenStreetMap contributors, © Stamen Design, © CartoDB'
+        attribution: layerType === 'osm'
+            ? '© OpenStreetMap contributors'
+            : '© OpenStreetMap contributors, © Stamen Design, © CartoDB'
     }).addTo(map);
 }
 
@@ -42,7 +48,7 @@ function updateEntityLayer(UID, latLng, radius, color) {
     markersLayer.removeLayer(entityLayers[UID].marker);
     markersLayer.removeLayer(entityLayers[UID].circle);
 
-    const marker = createDiamondMarker(playerLatLng, 'white').addTo(map);
+    const marker = createDiamondMarker(latLng, 'white').addTo(map); // Fixed parameter
     const circle = L.circle(latLng, { color, fillColor: color, fillOpacity: 0.2, radius });
 
     marker.addTo(markersLayer);
@@ -97,7 +103,11 @@ function testSuite() {
 
         const listPromise = new Promise((resolve, reject) => {
             entityManager.getEntityList(resultList => {
-                Array.isArray(resultList) ? resolve(resultList) : reject("Failed to retrieve list or list is not an array");
+                if (Array.isArray(resultList)) {
+                    resolve(resultList);
+                } else {
+                    reject("Failed to retrieve list or list is not an array");
+                }
             });
         });
 
@@ -110,44 +120,52 @@ function testSuite() {
                 const updateLat = lat + 0.01;
                 const updateLng = lng + 0.01;
 
-                // Assuming these methods are asynchronous; handle them appropriately
-                return Promise.all([
-                    new Promise(resolve => entityManager.setEntityLatRadByUID("TEST", updateLat, resolve)),
-                    new Promise(resolve => entityManager.setEntityLongRadByUID("TEST", updateLng, resolve))
-                ]).then(() => Promise.all([
-                    new Promise((resolve, reject) => {
-                        entityManager.getEntityLatRadByUID("TEST", resultLat => {
-                            if (resultLat === updateLat) {
-                                testResults.updatedLat = true;
-                                resolve();
-                            } else {
-                                reject("Latitude update failed.");
-                            }
-                        });
-                    }),
-                    new Promise((resolve, reject) => {
-                        entityManager.getEntityLongRadByUID("TEST", resultLng => {
-                            if (resultLng === updateLng) {
-                                testResults.updatedLng = true;
-                                resolve();
-                            } else {
-                                reject("Longitude update failed.");
-                            }
-                        });
-                    })
-                ]));
-            })
-            .then(() => {
-                entityManager.qmlLog("JS: Latitude and longitude updates verified successfully.");
+                // Update entity's latitude and longitude
+                const updateLatPromise = new Promise((resolve) => {
+                    entityManager.setEntityLatRadByUID("TEST", updateLat, resolve);
+                });
+
+                const updateLngPromise = new Promise((resolve) => {
+                    entityManager.setEntityLongRadByUID("TEST", updateLng, resolve);
+                });
+
+                return Promise.all([updateLatPromise, updateLngPromise]).then(() => {
+                    // Verify updates
+                    return Promise.all([
+                        new Promise((resolve) => {
+                            entityManager.getEntityLatRadByUID("TEST", resultLat => {
+                                resolve(resultLat);
+                            });
+                        }),
+                        new Promise((resolve) => {
+                            entityManager.getEntityLongRadByUID("TEST", resultLng => {
+                                resolve(resultLng);
+                            });
+                        })
+                    ]).then(([updatedLat, updatedLng]) => {
+                        if (updatedLat === updateLat) {
+                            entityManager.qmlLog("JS: Latitude update assertion passed.");
+                            testResults.updatedLat = true;
+                        } else {
+                            entityManager.qmlLog(`JS: Latitude update assertion failed. Expected ${updateLat}, but got ${updatedLat}`);
+                        }
+
+                        if (updatedLng === updateLng) {
+                            entityManager.qmlLog("JS: Longitude update assertion passed.");
+                            testResults.updatedLng = true;
+                        } else {
+                            entityManager.qmlLog(`JS: Longitude update assertion failed. Expected ${updateLng}, but got ${updatedLng}`);
+                        }
+                    });
+                });
             })
             .catch(error => {
                 entityManager.qmlLog(`JS: ${error}`);
             })
             .finally(() => {
-                // Print list
+                // Print list and summary
                 entityManager.printAllEntities();
 
-                // Print the summary of tests
                 let passCount = Object.values(testResults).filter(v => v === true).length;
                 let totalTests = Object.keys(testResults).length;
                 let summary = `Test Summary: ${passCount}/${totalTests} tests passed.`;
@@ -293,7 +311,7 @@ function getEntityByUID() {
 
     const UID = document.getElementById("UID").value.trim();
     const entity = entityManager.getEntityByUID(UID);
-    entityManager.qmlLog(entity.UID ? `JS: Entity found with UID: ${UID}` : `JS: Entity not found with UID: ${UID}`);
+    entityManager.qmlLog(entity ? `JS: Entity found with UID: ${UID}` : `JS: Entity not found with UID: ${UID}`);
 }
 
 function updateEntityId() {
@@ -327,8 +345,8 @@ function moveUserPosition(deltaLat, deltaLng) {
 
     updateUserPosition(newLatLng);
 }
-/* ----------------------------- MAP SETUP ----------------------------- */
 
+/* ----------------------------- MAP SETUP ----------------------------- */
 
 updateTileLayer('osm'); // Default map layer
 
@@ -337,35 +355,28 @@ const playerLatLng = [-37.814, 144.963];
 userMarker = createDiamondMarker(playerLatLng, 'white').addTo(map);
 userRing = L.circle(playerLatLng, { color: 'white', radius: 1000, fillOpacity: 0.05 }).addTo(map);
 
-// Entity markers setup
-const entityPositions = [
-    [-37.814, 144.961],
-    [-37.814, 144.962],
-    [-37.813, 144.963],
-    [-37.815, 144.963],
-    [-37.816, 144.962],
-    [-37.811, 144.969],
-    [-37.811, 144.968],
-    [-37.811, 144.967],
-    [-37.811, 144.966],
-    [-37.810, 144.967]
-];
+entities = entityList.map((entity, index) => {
+    if (entity.latitude !== undefined && entity.longitude !== undefined) {
+        const entityLatLng = L.latLng(entity.latitude, entity.longitude);
+        const color = `hsl(${index * 72}, 100%, 50%)`;
+        const marker = createDiamondMarker(entityLatLng, color).addTo(map);
+        const circle = L.circle(entityLatLng, { color, radius: 2000, fillOpacity: 0.05 }).addTo(map);
 
-const entities = entityPositions.map((pos, index) => {
-    const color = `hsl(${index * 72}, 100%, 50%)`;
-    const marker = createDiamondMarker(pos, color).addTo(map);
-    const circle = L.circle(pos, { color, radius: 2000, fillOpacity: 0.05 }).addTo(map);
-
-    return {
-        marker,
-        circle,
-        latLng: L.latLng(pos),
-        direction: Math.random() * 2 * Math.PI,
-        speed: 0.0001,
-        stopDuration: Math.random() * 2000 + 2000,
-        timeStopped: 0
-    };
-});
+        return {
+            marker,
+            circle,
+            latLng: entityLatLng,
+            direction: Math.random() * 2 * Math.PI,
+            speed: 0.0001,
+            stopDuration: Math.random() * 2000 + 2000,
+            timeStopped: 0,
+            lastTimestamp: 0
+        };
+    } else {
+        entityManager.qmlLog("JS: Entity missing latitude or longitude", entity);
+        return null; // Filter out entities without valid positions
+    }
+}).filter(entity => entity !== null); // Filter out null entities
 
 // Start animating entities
 animateEntities();
@@ -378,18 +389,15 @@ function initWebChannel(channel) {
 
 window.onload = () => new QWebChannel(qt.webChannelTransport, initWebChannel);
 
+
 // Helper functions
 const ANIMATION_RADIUS = 0.001;
 const ANIMATION_SPEED = 0.01;
 const PATTERN_PERIOD = 5000;
 
 /* ----------------------------- VARIABLES ----------------------------- */
-const points = [];
-let lines = [];
-let mode = 'scroll';            // Default map mode
-let autoCentreOnPlane = true;
 let firstPoint = null;
-
+animateEntities();
 /* ----------------------------- MAIN LOOP ----------------------------- */
 map.on('click', function(event) {
     const coords = event.latlng;
