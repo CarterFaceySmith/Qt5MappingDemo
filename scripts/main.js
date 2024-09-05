@@ -1,45 +1,32 @@
 const map = L.map('map').setView([-37.814, 144.963], 13); // Melbourne
-let currentBaseLayer;
+const ANIMATION_RADIUS = 0.001;
+const ANIMATION_SPEED = 0.01;
+const PATTERN_PERIOD = 5000;
+
+let currentBaseLayer, userMarker, userRing, entityManager;
 let markersLayer = L.layerGroup().addTo(map);
 let linesLayer = L.layerGroup().addTo(map);
 let entitiesLayer = L.layerGroup().addTo(map);
-let userMarker;
-let userRing;
-let entityList = [];
-let entities = [];
-let points = []; // Ensure points array is declared
-let lines = []; // Ensure lines array is declared
-let entityLayers = {}; // Ensure entityLayers is declared
-let autoCentreOnPlane = true; // Assuming this is a flag for centering
+let entityList, entities, points, lines = [];
+let firstPoint = null;
+let autoCentreOnPlane = true;
 
-// Function to create a diamond marker
-function createDiamondMarker(latLng, color) {
+function initWebChannel(channel) {
+    entityManager = channel.objects.entityManager;
+    testSuite();
+}
+
+window.onload = () => new QWebChannel(qt.webChannelTransport, initWebChannel);
+
+function createDiamondMarker(latLng, colour) {
     return L.marker(latLng, {
         icon: L.divIcon({
             className: 'diamond-icon',
-            html: `<div style="background-color: ${color}; width: 20px; height: 20px; transform: rotate(45deg);"></div>`,
-            iconSize: [20, 20], // Changed to [20, 20] to fit the icon
-            iconAnchor: [10, 10] // Adjusted anchor to center the icon
+            html: `<div style="background-color: ${colour}; width: 20px; height: 20px; transform: rotate(45deg);"></div>`,
+            iconSize: [20, 20],
+            iconAnchor: [10, 10]
         })
     });
-}
-
-function updateTileLayer(layerType) {
-    if (currentBaseLayer) {
-        map.removeLayer(currentBaseLayer);
-    }
-
-    const tileLayers = {
-        osm: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
-        'stamen-terrain': 'https://tiles.stadiamaps.com/tiles/stamen_terrain/{z}/{x}/{y}{r}.png?api_key=5a677b5d-7b56-450a-b358-2d5a5a8af829',
-        'carto-light': 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png'
-    };
-
-    currentBaseLayer = L.tileLayer(tileLayers[layerType], {
-        attribution: layerType === 'osm'
-            ? '© OpenStreetMap contributors'
-            : '© OpenStreetMap contributors, © Stamen Design, © CartoDB'
-    }).addTo(map);
 }
 
 function updateEntityLayer(UID, latLng, radius, color) {
@@ -176,77 +163,6 @@ function testSuite() {
     }
 }
 
-function redrawAllLayers() {
-    drawPoints();
-    drawLines();
-}
-
-function drawPoints() {
-    markersLayer.clearLayers();
-    points.forEach((point) => {
-        L.marker([point.lat, point.lon], { draggable: true })
-        .addTo(markersLayer);
-    });
-}
-
-function haversineDistance(lat1, lon1, lat2, lon2) {
-    const R = 6371; // Radius of Earth in km
-    const dLat = (lat2 - lat1) * (Math.PI / 180);
-    const dLon = (lon2 - lon1) * (Math.PI / 180);
-    const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-              Math.cos(lat1 * (Math.PI / 180)) * Math.cos(lat2 * (Math.PI / 180)) *
-              Math.sin(dLon / 2) * Math.sin(dLon / 2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-    return R * c; // Distance in km
-}
-
-function drawLines() {
-    linesLayer.clearLayers();
-    lines.forEach(line => {
-        if (line.start && line.end) {
-            const lat1 = line.start.lat;
-            const lon1 = line.start.lon;
-            const lat2 = line.end.lat;
-            const lon2 = line.end.lon;
-
-            const distance = haversineDistance(lat1, lon1, lat2, lon2);
-            entityManager.qmlLog(`Distance between (${lat1.toFixed(2)}, ${lon1.toFixed(2)}) and (${lat2.toFixed(2)}, ${lon2.toFixed(2)}): ${distance.toFixed(2)} km`);
-
-            L.polyline([[lat1, lon1], [lat2, lon2]], {
-                color: 'black',
-                weight: 2
-            }).addTo(linesLayer);
-        }
-    });
-}
-
-function removePoint(latlng) {
-    const tolerance = 0.01;
-
-    // Find the index of the point to be removed
-    const index = points.findIndex(point => {
-        return Math.hypot(point.lat - latlng.lat, point.lon - latlng.lng) < tolerance;
-    });
-
-    if (index !== -1) {
-        // Remove the point from the points array
-        points.splice(index, 1);
-
-        // Remove lines that start or end at the point
-        lines = lines.filter(line =>
-            !(
-                (Math.hypot(line.start.lat - latlng.lat, line.start.lon - latlng.lng) < tolerance) ||
-                (Math.hypot(line.end.lat - latlng.lat, line.end.lon - latlng.lng) < tolerance)
-            )
-        );
-
-        // Redraw all layers to reflect changes
-        redrawAllLayers();
-    } else {
-        entityManager.qmlLog("JS: removePoint() found no point, or point is too far away.");
-    }
-}
-
 // Function to animate entities
 function animateEntities() {
     function move(timestamp) {
@@ -288,71 +204,9 @@ function animateEntities() {
     move(0);
 }
 
-function createEntity() {
-    if (!entityManager) return;
-
-    const name = document.getElementById("name").value.trim();
-    const UID = document.getElementById("UID").value.trim();
-    const radius = parseFloat(document.getElementById("radius").value.trim());
-    const latitude = parseFloat(document.getElementById("latitude").value.trim());
-    const longitude = parseFloat(document.getElementById("longitude").value.trim());
-
-    const newEntity = entityManager.createEntity(name, UID, radius, latitude, longitude);
-    if (newEntity) {
-        entityManager.qmlLog(`JS: Created entity with name: ${name}`);
-        updateEntityLayer(UID, L.latLng(latitude, longitude), radius, 'orange');
-    } else {
-        entityManager.qmlLog("JS: Failed to create an entity.");
-    }
-}
-
-function getEntityByUID() {
-    if (!entityManager) return;
-
-    const UID = document.getElementById("UID").value.trim();
-    const entity = entityManager.getEntityByUID(UID);
-    entityManager.qmlLog(entity ? `JS: Entity found with UID: ${UID}` : `JS: Entity not found with UID: ${UID}`);
-}
-
-function updateEntityId() {
-    if (entityManager) {
-        const currentId = document.getElementById("UID").value.trim();
-        const newId = document.getElementById("newId").value.trim();
-        entityManager.setEntityUID(currentId, newId);
-    }
-}
-
-function updateUserPosition(latlng) {
-    if (userMarker) {
-        map.removeLayer(userMarker);
-    }
-    if (userRing) {
-        map.removeLayer(userRing);
-    }
-
-    userRing = L.circle(latlng, { color: 'white', radius: 1000, fillOpacity: 0.05 }).addTo(map);
-    userMarker = createDiamondMarker(latlng, 'white').addTo(map);
-
-    if (autoCentreOnPlane) {
-        map.setView(latlng, map.getZoom());
-    }
-}
-
-function moveUserPosition(deltaLat, deltaLng) {
-    const newLat = userMarker.getLatLng().lat + deltaLat;
-    const newLng = userMarker.getLatLng().lng + deltaLng;
-    const newLatLng = L.latLng(newLat, newLng);
-
-    updateUserPosition(newLatLng);
-}
-
-/* ----------------------------- MAP SETUP ----------------------------- */
-
-updateTileLayer('osm'); // Default map layer
-
-// Player marker setup
-const playerLatLng = [-37.814, 144.963];
-userMarker = createDiamondMarker(playerLatLng, 'white').addTo(map);
+currentBaseLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png');
+const userLatLng = [-37.814, 144.963];
+userMarker = createDiamondMarker(userLatLng, 'white').addTo(map);
 userRing = L.circle(playerLatLng, { color: 'white', radius: 1000, fillOpacity: 0.05 }).addTo(map);
 
 entities = entityList.map((entity, index) => {
@@ -372,122 +226,16 @@ entities = entityList.map((entity, index) => {
             timeStopped: 0,
             lastTimestamp: 0
         };
-    } else {
+    }
+    else {
         entityManager.qmlLog("JS: Entity missing latitude or longitude", entity);
         return null; // Filter out entities without valid positions
     }
 }).filter(entity => entity !== null); // Filter out null entities
 
-// Start animating entities
+// const color = `hsl(${1 * 72}, 100%, 50%)`;
+// const entLatLng = [entityList[0].latitude, entities[0].longitude];
+// const marker = createDiamondMarker(entLatLng, color).addTo(map);
+// const circle = L.circle([-37.814, 144.961], { color, radius: 2000, fillOpacity: 0.05 }).addTo(map);
+
 animateEntities();
-
-// Initialize WebChannel
-function initWebChannel(channel) {
-    entityManager = channel.objects.entityManager;
-    testSuite();
-}
-
-window.onload = () => new QWebChannel(qt.webChannelTransport, initWebChannel);
-
-
-// Helper functions
-const ANIMATION_RADIUS = 0.001;
-const ANIMATION_SPEED = 0.01;
-const PATTERN_PERIOD = 5000;
-
-/* ----------------------------- VARIABLES ----------------------------- */
-let firstPoint = null;
-animateEntities();
-/* ----------------------------- MAIN LOOP ----------------------------- */
-map.on('click', function(event) {
-    const coords = event.latlng;
-    if (!coords) return;
-
-    if (mode === 'add-point') {
-        const pointCoords = {
-            lat: coords.lat,
-            lon: coords.lng
-        };
-        points.push(pointCoords);
-        drawPoints();
-    }
-    else if (mode === 'draw-line') {
-        if (firstPoint === null) {
-            firstPoint = { lat: coords.lat, lon: coords.lng };
-        }
-        else {
-            const secondPoint = { lat: coords.lat, lon: coords.lng };
-            lines.push({ start: firstPoint, end: secondPoint });
-            drawLines();
-            firstPoint = null; // Reset for the next line
-        }
-    }
-    else if (mode === 'remove-point') {
-        removePoint(coords);
-    }
-});
-
-/* -------------------------- EVENT LISTENERS -------------------------- */
-document.getElementById('add-point').addEventListener('click', function() {
-    mode = 'add-point';
-    this.classList.add('active');
-    document.getElementById('draw-line').classList.remove('active');
-    document.getElementById('remove-point').classList.remove('active');
-    document.getElementById('scroll').classList.remove('active');
-    firstPoint = null; // Reset line drawing mode
-});
-
-document.getElementById('scroll').addEventListener('click', function() {
-    mode = 'scroll';
-    this.classList.add('active');
-    document.getElementById('add-point').classList.remove('active');
-    document.getElementById('remove-point').classList.remove('active');
-    document.getElementById('draw-line').classList.remove('active');
-    firstPoint = null; // Reset line drawing mode
-});
-
-document.getElementById('draw-line').addEventListener('click', function() {
-    mode = 'draw-line';
-    this.classList.add('active');
-    document.getElementById('add-point').classList.remove('active');
-    document.getElementById('remove-point').classList.remove('active');
-    document.getElementById('scroll').classList.remove('active');
-    firstPoint = null; // Reset line drawing mode
-});
-
-document.getElementById('remove-point').addEventListener('click', function() {
-    mode = 'remove-point';
-    this.classList.add('active');
-    document.getElementById('add-point').classList.remove('active');
-    document.getElementById('draw-line').classList.remove('active');
-    document.getElementById('scroll').classList.remove('active');
-    firstPoint = null; // Reset line drawing mode
-});
-
-document.getElementById('map-mode').addEventListener('change', function() {
-    updateTileLayer(this.value);
-});
-
-document.getElementById('toggle-centre').addEventListener('click', function() {
-    autoCentreOnPlane = !autoCentreOnPlane;
-    this.classList.toggle('active', autoCentreOnPlane);
-});
-
-document.addEventListener('keydown', function(event) {
-        const step = 0.001; // Adjust step size as needed
-
-        switch(event.key) {
-        case 'ArrowUp':
-            moveUserPosition(step, 0);
-            break;
-        case 'ArrowDown':
-            moveUserPosition(-step, 0);
-            break;
-        case 'ArrowLeft':
-            moveUserPosition(0, -step);
-            break;
-        case 'ArrowRight':
-            moveUserPosition(0, step);
-            break;
-        }
-    });
