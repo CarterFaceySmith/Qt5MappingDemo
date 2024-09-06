@@ -2,9 +2,9 @@
 
 #### Refactor: mapScript.js compartmentalisation and tidy
 - TO-DOS
-    - Move all helper functions to segmented seperate file
-    - Move all config parameters to segmented seperate file
-    - Move test suite to seperate testing file
+    - ~Move all helper functions to segmented seperate file~ (CANT DO: qrc file structuring prevents import statements in JS code)
+    - ~Move all config parameters to segmented seperate file~ (CANT DO: qrc file structuring prevents import statements in JS code)
+    - ~Move test suite to seperate testing file~ (CANT DO: qrc file structuring prevents import statements in JS code)
     - Refactor map and layer initialisation to intake entities from the backend DB 
 
 #### Feat: Entity movement

@@ -3,7 +3,6 @@ import QtQuick.Controls 2.15
 import QtWebEngine 1.10
 import QtWebChannel 1.15
 import QtQuick.Window 2.14
-import "qrc:///mapScript.js" as MapScript
 
 Window {
     visible: true

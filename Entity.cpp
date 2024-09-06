@@ -96,6 +96,7 @@ void Entity::setLatitudeRadians(double latitudeRadians)
 {
     if (m_latitudeRadians != latitudeRadians) {
         m_latitudeRadians = latitudeRadians;
+        qDebug() << "Entity lat changed to " << latitudeRadians;
         emit latitudeRadiansChanged();
     }
 }
@@ -114,6 +115,7 @@ void Entity::setLongitudeRadians(double longitudeRadians)
 {
     if (m_longitudeRadians != longitudeRadians) {
         m_longitudeRadians = longitudeRadians;
+        qDebug() << "Entity long changed to " << longitudeRadians;
         emit longitudeRadiansChanged();
     }
 }
