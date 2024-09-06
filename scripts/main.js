@@ -80,23 +80,23 @@ const MapApp = {
         });
     },
 
-    addEntity(entity) {
-        const latLng = L.latLng(entity.latitude, entity.longitude);
-        const color = this.getRandomColor();
-        const marker = this.createDiamondMarker(latLng, color).addTo(this.layers.entities);
-        const circle = L.circle(latLng, { color, radius: 2000, fillOpacity: 0.05 }).addTo(this.layers.entities);
+    // addEntity(entity) {
+    //     const latLng = L.latLng(entity.latitude, entity.longitude);
+    //     const color = this.getRandomColor();
+    //     const marker = this.createDiamondMarker(latLng, color).addTo(this.layers.entities);
+    //     const circle = L.circle(latLng, { color, radius: 2000, fillOpacity: 0.05 }).addTo(this.layers.entities);
 
-        this.entities.set(entity.UID, {
-            marker,
-            circle,
-            latLng,
-            direction: Math.random() * 2 * Math.PI,
-            speed: 0.0001,
-            stopDuration: Math.random() * 2000 + 2000,
-            timeStopped: 0,
-            lastTimestamp: 0
-        });
-    },
+    //     this.entities.set(entity.UID, {
+    //         marker,
+    //         circle,
+    //         latLng,
+    //         direction: Math.random() * 2 * Math.PI,
+    //         speed: 0.0001,
+    //         stopDuration: Math.random() * 2000 + 2000,
+    //         timeStopped: 0,
+    //         lastTimestamp: 0
+    //     });
+    // },
 
     initUserMarker() {
         const userLatLng = L.latLng(CONFIG.initialView.lat, CONFIG.initialView.lng);
@@ -178,6 +178,9 @@ const MapApp = {
             entity.marker.setLatLng(newLatLng);
             entity.circle.setLatLng(newLatLng);
 
+            // Update backend entity position
+            this.updateEntityPosition(entity.marker.options.title, newLatLng);
+
             if (Math.random() < 0.01) entity.direction = Math.random() * 2 * Math.PI;
             if (Math.random() < 0.01) {
                 entity.stopDuration = Math.random() * 2000 + 2000;
@@ -193,6 +196,39 @@ const MapApp = {
                 entity.timeStopped = 0;
             }
         }
+    },
+
+    updateEntityPosition(UID, latLng) {
+        if (this.entityManager) {
+            const latRad = this.degToRad(latLng.lat);
+            const lngRad = this.degToRad(latLng.lng);
+            this.entityManager.setEntityLatRadByUID(UID, latRad);
+            this.entityManager.setEntityLongRadByUID(UID, lngRad);
+        }
+    },
+
+    degToRad(degrees) {
+        return degrees * (Math.PI / 180);
+    },
+
+    addEntity(entity) {
+        const latLng = L.latLng(entity.latitude, entity.longitude);
+        const color = this.getRandomColor();
+        const marker = this.createDiamondMarker(latLng, color).addTo(this.layers.entities);
+        marker.options.title = entity.UID; // Add UID to marker for reference
+
+        const circle = L.circle(latLng, { color, radius: 2000, fillOpacity: 0.05 }).addTo(this.layers.entities);
+
+        this.entities.set(entity.UID, {
+            marker,
+            circle,
+            latLng,
+            direction: Math.random() * 2 * Math.PI,
+            speed: 0.0001,
+            stopDuration: Math.random() * 2000 + 2000,
+            timeStopped: 0,
+            lastTimestamp: 0
+        });
     },
 
     log(message) {
