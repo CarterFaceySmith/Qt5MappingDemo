@@ -1,26 +1,59 @@
-### In-progress
+<h3 align="center">Qt6 CPP Mapping Demo</h3>
+<br>
+<p align="center"><i>A Qt6 mapping demo utilizing a C++ backend with a QML middle/core layer for initialising and running a map screen in JavaScript with various entities and parameters</i></p>
 
-#### ~Refactor: mapScript.js compartmentalisation and tidy~
-- TO-DOS
-    - ~Move all helper functions to segmented seperate file~ (CANT DO: qrc file structuring prevents import statements in JS code)
-    - ~Move all config parameters to segmented seperate file~ (CANT DO: qrc file structuring prevents import statements in JS code)
-    - ~Move test suite to seperate testing file~ (CANT DO: qrc file structuring prevents import statements in JS code)
-    - ~Refactor map and layer initialisation to intake entities from the backend DB~
+## About The Project
 
-#### Feat: Entity movement
-- PRE-REQS (COMPLETE)
-    - ~Create static entity from lat long vals -> Create multiple~
-    - ~Update entity pos from backend DB and redraw marker -> Multiple~
+This project demonstrates how to integrate a Qt6-based mapping interface with a C++ backend and a QML middle/core layer. The demo showcases the use of Qt6 to create a map screen, manage multiple entities, and handle various parameters through JavaScript. This is ideal for applications requiring interactive and dynamic map visualisations.
 
-- TO-DOS
-    - ~Create animated dummy entity w/ rad + move~
-        - ~Add random start/stop/reverse trajectory to simulate dynamic behaviour~
-    - ~Init. multiple dummies w/ move~
-    - ~Backfill dummy entity data w/ DB entity geometry data~
-    - Predefine entity flight path data in DB for backfill?
+## Pre-requisites
 
-#### ~Build: Migrate to Qt6~
+Ensure you have the following software installed before you start:
 
-#### Build: Integrate with alternate remote codebase
-- PRE-REQS (INCOMPLETE)
-    - Visual Studio configuration for compilation compatibility
+- **Qt6**: This project relies on Qt6 libraries and tools.
+
+## Building and Running the Project
+
+If using Qt Creator as your IDE of choice, simply clone the repo and load it in as a project, it will auto-configure and you can build and run via the `Ctrl + R` keybind.
+
+Alternatively, follow these steps to build and run the Qt6 mapping demo manually:
+
+1. **Clean Previous Builds** (if applicable): 
+    ```bash
+    rm -rf build
+    ```
+
+2. **Optional: Create Build Directory**: 
+    ```bash
+    mkdir build
+    ```
+
+3. **Navigate to Build Directory**: 
+    ```bash
+    cd build
+    ```
+
+4. **Generate Build Files Using CMake**: 
+    ```bash
+    cmake .. -DCMAKE_PREFIX_PATH=/path/to/Qt6
+    ```
+    Replace `/path/to/Qt6` with the path to your Qt6 installation if it's not in your default search paths.
+
+5. **Compile the Project**: 
+    ```bash
+    make
+    ```
+
+6. **Run the Application**: 
+    ```bash
+    ./Qt6MappingDemo
+    ```
+
+## Notes
+
+If you have any issues or questions, please feel free to [contact me](mailto:carterfs@proton.me).
+
+### References
+
+For more information on Qt6 and its modules, visit the [Qt Documentation](https://doc.qt.io/qt-6/).
+
