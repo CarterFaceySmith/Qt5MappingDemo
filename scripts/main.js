@@ -22,7 +22,6 @@ const MapApp = {
         lines: null,
         entities: null
     },
-    entityManager: null,
     entities: new Map(),
     userMarker: null,
     userRing: null,
@@ -31,7 +30,8 @@ const MapApp = {
 
     async init() {
         this.initMap();
-        await this.initWebChannel();
+        await NetworkInterface.init(qt.webChannelTransport);
+        await NetworkInterface.initialise("127.0.0.1", 8080); // FIXME: Replace with IP and port intake
         await this.runTests();
         this.initEntities();
         this.bindEvents();
@@ -53,25 +53,28 @@ const MapApp = {
                 if (this.entityManager) {
                     resolve();
                 } else {
-                    reject(new Error('Failed to initialize entityManager'));
+                    reject(new Error('Failed to initialise entityManager'));
                 }
             });
         });
     },
 
     async runTests() {
-        // Implement your test suite here
-        // For brevity, I'm not including the full test implementation
-        this.log('Running tests...');
-        // Simulating async tests
+        NetworkInterface.log('Running tests...');
+        // Tests here
         await new Promise(resolve => setTimeout(resolve, 1000));
-        this.log('Tests completed');
+        NetworkInterface.log('Tests completed');
     },
 
     async initEntities() {
-        const entityList = await this.getEntityList();
-        entityList.forEach(this.addEntity.bind(this));
-        this.initUserMarker();
+        try {
+            const pe = await NetworkInterface.receivePE();
+            this.addEntity(pe);
+            const emitter = await NetworkInterface.receiveEmitter();
+            this.addEntity(emitter);
+        } catch (error) {
+            console.error("Error initialising entities:", error);
+        }
     },
 
     async getEntityList() {
@@ -198,14 +201,36 @@ const MapApp = {
         }
     },
 
-    updateEntityPosition(UID, latLng) {
-        if (this.entityManager) {
+    updateEntityPosition(id, latLng) {
             const latRad = this.degToRad(latLng.lat);
             const lngRad = this.degToRad(latLng.lng);
-            this.entityManager.setEntityLatRadByUID(UID, latRad);
-            this.entityManager.setEntityLongRadByUID(UID, lngRad);
+            NetworkInterface.sendPESetting("latitude", id, latRad);
+            NetworkInterface.sendPESetting("longitude", id, lngRad);
+        },
+
+    log(message) {
+        NetworkInterface.log(message);
+        console.log(message);
+    },
+
+    // Add methods to handle receiving and sending data
+    async startDataPolling() {
+        while (true) {
+            try {
+                const [type, id, setting, value] = await NetworkInterface.receiveSetting();
+                this.handleReceivedSetting(type, id, setting, value);
+            } catch (error) {
+                this.entityManager.qmlLog(`Error polling data: ${error}`);
+                await new Promise(resolve => setTimeout(resolve, 1000)); // Wait before retrying
+            }
         }
     },
+
+    handleReceivedSetting(type, id, setting, value) {
+        // FIXME: Add logic to handle setting
+       this.entityManager.qmlLog(`Received setting: ${type}, ${id}, ${setting}, ${value}`);
+        // FIXME: Update map of entities
+    }
 
     degToRad(degrees) {
         return degrees * (Math.PI / 180);
@@ -231,13 +256,13 @@ const MapApp = {
         });
     },
 
-    log(message) {
-        if (this.entityManager) {
-            this.entityManager.qmlLog(`JS: ${message}`);
-        }
-        console.log(message);
-    }
+    // log(message) {
+    //     if (this.entityManager) {
+    //         this.entityManager.qmlLog(`JS: ${message}`);
+    //     }
+    //     console.log(message);
+    // }
 };
 
-// Initialize the application when the window loads
-window.onload = () => MapApp.init().catch(error => console.error('Initialization error:', error));
+// Initialise the application when the window loads
+window.onload = () => MapApp.init().catch(error => console.error('Initialisation error:', error));
