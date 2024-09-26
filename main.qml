@@ -8,7 +8,7 @@ Window {
     visible: true
     width: 1024
     height: 800
-    title: "Qt5 WebChannel JavaScript/C++ Map Demo"
+    title: "Qt6 WebChannel JavaScript/C++ Map Demo"
 
     WebEngineView {
         id: webView
@@ -17,7 +17,7 @@ Window {
 
         WebChannel {
             id: channel
-            registeredObjects: [entityManagerObject]
+            registeredObjects: [entityManagerObject, networkImplementationObject]
         }
 
         webChannel: channel
@@ -56,6 +56,62 @@ Window {
                 result = result.entities;
             }
             return result;
+        }
+    }
+
+    // Expose NetworkImplementation to the JavaScript
+    QtObject {
+        id: networkImplementationObject
+        WebChannel.id: "networkImplementation"
+
+        // Initialization and connection
+        function initialise(address, port) {
+            if (networkImplementation) networkImplementation.initialise(address, port)
+        }
+        function close() {
+            if (networkImplementation) networkImplementation.close()
+        }
+
+        // Sending methods
+        function sendPESetting(setting, id, updateVal) {
+            if (networkImplementation) return networkImplementation.sendPESetting(setting, id, updateVal)
+        }
+        function sendEmitterSetting(setting, id, updateVal) {
+            if (networkImplementation) return networkImplementation.sendEmitterSetting(setting, id, updateVal)
+        }
+        function sendBlob(blobString) {
+            if (networkImplementation) return networkImplementation.sendBlob(blobString)
+        }
+        function sendPE(pe) {
+            if (networkImplementation) return networkImplementation.sendPE(pe)
+        }
+        function sendEmitter(emitter) {
+            if (networkImplementation) return networkImplementation.sendEmitter(emitter)
+        }
+        function sendComplexBlob(pe, emitter, doubleMap) {
+            if (networkImplementation) return networkImplementation.sendComplexBlob(pe, emitter, doubleMap)
+        }
+
+        // Receiving methods
+        function receiveSetting() {
+            if (networkImplementation) return networkImplementation.receiveSetting()
+        }
+        function receivePE() {
+            if (networkImplementation) return networkImplementation.receivePE()
+        }
+        function receiveEmitter() {
+            if (networkImplementation) return networkImplementation.receiveEmitter()
+        }
+        function receiveBlob() {
+            if (networkImplementation) return networkImplementation.receiveBlob()
+        }
+        function receiveComplexBlob() {
+            if (networkImplementation) return networkImplementation.receiveComplexBlob()
+        }
+
+        // Logging
+        function log(message) {
+            if (networkImplementation) networkImplementation.log(message)
         }
     }
 }
