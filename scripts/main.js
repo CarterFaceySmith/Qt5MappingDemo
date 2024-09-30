@@ -22,6 +22,7 @@ const MapApp = {
         lines: null,
         entities: null
     },
+    entityManager: null,
     entities: new Map(),
     userMarker: null,
     userRing: null,
@@ -30,8 +31,7 @@ const MapApp = {
 
     async init() {
         this.initMap();
-        await NetworkInterface.init(qt.webChannelTransport);
-        await NetworkInterface.initialise("127.0.0.1", 8080); // FIXME: Replace with IP and port intake
+        await this.initWebChannel();
         await this.runTests();
         this.initEntities();
         this.bindEvents();
@@ -53,28 +53,22 @@ const MapApp = {
                 if (this.entityManager) {
                     resolve();
                 } else {
-                    reject(new Error('Failed to initialise entityManager'));
+                    reject(new Error('Failed to initialize entityManager'));
                 }
             });
         });
     },
 
     async runTests() {
-        NetworkInterface.log('Running tests...');
-        // Tests here
+        this.log('Running tests...');
         await new Promise(resolve => setTimeout(resolve, 1000));
-        NetworkInterface.log('Tests completed');
+        this.log('Tests completed');
     },
 
     async initEntities() {
-        try {
-            const pe = await NetworkInterface.receivePE();
-            this.addEntity(pe);
-            const emitter = await NetworkInterface.receiveEmitter();
-            this.addEntity(emitter);
-        } catch (error) {
-            console.error("Error initialising entities:", error);
-        }
+        const entityList = await this.getEntityList();
+        entityList.forEach(this.addEntity.bind(this));
+        this.initUserMarker();
     },
 
     async getEntityList() {
@@ -83,23 +77,23 @@ const MapApp = {
         });
     },
 
-    // addEntity(entity) {
-    //     const latLng = L.latLng(entity.latitude, entity.longitude);
-    //     const color = this.getRandomColor();
-    //     const marker = this.createDiamondMarker(latLng, color).addTo(this.layers.entities);
-    //     const circle = L.circle(latLng, { color, radius: 2000, fillOpacity: 0.05 }).addTo(this.layers.entities);
+    addEntity(entity) {
+        const latLng = L.latLng(entity.latitude, entity.longitude);
+        const color = this.getRandomColor();
+        const marker = this.createDiamondMarker(latLng, color).addTo(this.layers.entities);
+        const circle = L.circle(latLng, { color, radius: 2000, fillOpacity: 0.05 }).addTo(this.layers.entities);
 
-    //     this.entities.set(entity.UID, {
-    //         marker,
-    //         circle,
-    //         latLng,
-    //         direction: Math.random() * 2 * Math.PI,
-    //         speed: 0.0001,
-    //         stopDuration: Math.random() * 2000 + 2000,
-    //         timeStopped: 0,
-    //         lastTimestamp: 0
-    //     });
-    // },
+        this.entities.set(entity.UID, {
+            marker,
+            circle,
+            latLng,
+            direction: Math.random() * 2 * Math.PI,
+            speed: 0.0001,
+            stopDuration: Math.random() * 2000 + 2000,
+            timeStopped: 0,
+            lastTimestamp: 0
+        });
+    },
 
     initUserMarker() {
         const userLatLng = L.latLng(CONFIG.initialView.lat, CONFIG.initialView.lng);
@@ -201,36 +195,14 @@ const MapApp = {
         }
     },
 
-    updateEntityPosition(id, latLng) {
+    updateEntityPosition(UID, latLng) {
+        if (this.entityManager) {
             const latRad = this.degToRad(latLng.lat);
             const lngRad = this.degToRad(latLng.lng);
-            NetworkInterface.sendPESetting("latitude", id, latRad);
-            NetworkInterface.sendPESetting("longitude", id, lngRad);
-        },
-
-    log(message) {
-        NetworkInterface.log(message);
-        console.log(message);
-    },
-
-    // Add methods to handle receiving and sending data
-    async startDataPolling() {
-        while (true) {
-            try {
-                const [type, id, setting, value] = await NetworkInterface.receiveSetting();
-                this.handleReceivedSetting(type, id, setting, value);
-            } catch (error) {
-                this.entityManager.qmlLog(`Error polling data: ${error}`);
-                await new Promise(resolve => setTimeout(resolve, 1000)); // Wait before retrying
-            }
+            this.entityManager.setEntityLatRadByUID(UID, latRad);
+            this.entityManager.setEntityLongRadByUID(UID, lngRad);
         }
     },
-
-    handleReceivedSetting(type, id, setting, value) {
-        // FIXME: Add logic to handle setting
-       this.entityManager.qmlLog(`Received setting: ${type}, ${id}, ${setting}, ${value}`);
-        // FIXME: Update map of entities
-    }
 
     degToRad(degrees) {
         return degrees * (Math.PI / 180);
@@ -256,13 +228,13 @@ const MapApp = {
         });
     },
 
-    // log(message) {
-    //     if (this.entityManager) {
-    //         this.entityManager.qmlLog(`JS: ${message}`);
-    //     }
-    //     console.log(message);
-    // }
+    log(message) {
+        if (this.entityManager) {
+            this.entityManager.qmlLog(`JS: ${message}`);
+        }
+        console.log(message);
+    }
 };
 
 // Initialise the application when the window loads
-window.onload = () => MapApp.init().catch(error => console.error('Initialisation error:', error));
+window.onload = () => MapApp.init().catch(error => console.error('Initialization error:', error));

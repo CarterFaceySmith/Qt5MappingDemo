@@ -4,7 +4,6 @@
 #include <QtWebEngineWidgets>
 #include <QUrl>
 #include "EntityManager.h"
-#include "AbstractNetworkInterface.h"
 
 int main(int argc, char *argv[])
 {
@@ -12,7 +11,6 @@ int main(int argc, char *argv[])
 
     QQmlApplicationEngine engine;
 
-    NetworkImplementation networkImplementation;
     EntityManager entityManager;
     entityManager.createEntity("C", "CHARIOT", 1000, -37.814, 144.963);
     entityManager.createEntity("D", "HANGED", 1000, -37.714, 144.863);
@@ -21,7 +19,6 @@ int main(int argc, char *argv[])
     entityManager.createEntity("Devil2", "DVL002", 500, -37.714, 144.963);
     entityManager.createEntity("Devil3", "DVL003", 700, -37.914, 144.873);
 
-    engine.rootContext()->setContextProperty("networkImplementation", &networkImplementation);
     engine.rootContext()->setContextProperty("entityManager", &entityManager);
 
     // Load the QML file

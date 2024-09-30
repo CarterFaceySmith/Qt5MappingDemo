@@ -64,7 +64,7 @@ Window {
         id: networkImplementationObject
         WebChannel.id: "networkImplementation"
 
-        // Initialization and connection
+        // Initialisation and connection
         function initialise(address, port) {
             if (networkImplementation) networkImplementation.initialise(address, port)
         }
