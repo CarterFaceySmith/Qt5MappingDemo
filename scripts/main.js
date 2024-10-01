@@ -53,17 +53,14 @@ const MapApp = {
                 if (this.entityManager) {
                     resolve();
                 } else {
-                    reject(new Error('Failed to initialize entityManager'));
+                    reject(new Error('Failed to initialise entityManager'));
                 }
             });
         });
     },
 
     async runTests() {
-        // Implement your test suite here
-        // For brevity, I'm not including the full test implementation
         this.log('Running tests...');
-        // Simulating async tests
         await new Promise(resolve => setTimeout(resolve, 1000));
         this.log('Tests completed');
     },
@@ -80,23 +77,23 @@ const MapApp = {
         });
     },
 
-    // addEntity(entity) {
-    //     const latLng = L.latLng(entity.latitude, entity.longitude);
-    //     const color = this.getRandomColor();
-    //     const marker = this.createDiamondMarker(latLng, color).addTo(this.layers.entities);
-    //     const circle = L.circle(latLng, { color, radius: 2000, fillOpacity: 0.05 }).addTo(this.layers.entities);
+    addEntity(entity) {
+        const latLng = L.latLng(entity.latitude, entity.longitude);
+        const color = this.getRandomColor();
+        const marker = this.createDiamondMarker(latLng, color).addTo(this.layers.entities);
+        const circle = L.circle(latLng, { color, radius: 2000, fillOpacity: 0.05 }).addTo(this.layers.entities);
 
-    //     this.entities.set(entity.UID, {
-    //         marker,
-    //         circle,
-    //         latLng,
-    //         direction: Math.random() * 2 * Math.PI,
-    //         speed: 0.0001,
-    //         stopDuration: Math.random() * 2000 + 2000,
-    //         timeStopped: 0,
-    //         lastTimestamp: 0
-    //     });
-    // },
+        this.entities.set(entity.UID, {
+            marker,
+            circle,
+            latLng,
+            direction: Math.random() * 2 * Math.PI,
+            speed: 0.0001,
+            stopDuration: Math.random() * 2000 + 2000,
+            timeStopped: 0,
+            lastTimestamp: 0
+        });
+    },
 
     initUserMarker() {
         const userLatLng = L.latLng(CONFIG.initialView.lat, CONFIG.initialView.lng);
@@ -239,5 +236,5 @@ const MapApp = {
     }
 };
 
-// Initialize the application when the window loads
+// Initialise the application when the window loads
 window.onload = () => MapApp.init().catch(error => console.error('Initialization error:', error));

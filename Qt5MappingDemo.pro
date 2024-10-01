@@ -7,6 +7,8 @@ QT += quick core webenginewidgets gui webchannel
 SOURCES += \
         Entity.cpp \
         EntityManager.cpp \
+        AbstractNetworkInterface.cpp \
+        NetworkInterfaceWrapper.cpp \
         main.cpp
 
 RESOURCES += qml.qrc
@@ -28,4 +30,8 @@ DISTFILES += \
 
 HEADERS += \
     Entity.h \
-    EntityManager.h
+    EntityManager.h \
+    AbstractNetworkInterface.h  \
+    NetworkInterfaceWrapper.h \
+    pe.h \
+    emitter.h
