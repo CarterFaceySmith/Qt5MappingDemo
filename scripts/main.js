@@ -53,7 +53,7 @@ const MapApp = {
                 if (this.entityManager) {
                     resolve();
                 } else {
-                    reject(new Error('Failed to initialize entityManager'));
+                    reject(new Error('Failed to initialise entityManager'));
                 }
             });
         });

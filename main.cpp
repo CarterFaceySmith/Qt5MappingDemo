@@ -4,11 +4,12 @@
 #include <QtWebEngineWidgets>
 #include <QUrl>
 #include "EntityManager.h"
+#include "NetworkInterfaceWrapper.h"
+#include "AbstractNetworkInterface.h"
 
 int main(int argc, char *argv[])
 {
     QGuiApplication app(argc, argv);
-
     QQmlApplicationEngine engine;
 
     EntityManager entityManager;
@@ -19,10 +20,16 @@ int main(int argc, char *argv[])
     entityManager.createEntity("Devil2", "DVL002", 500, -37.714, 144.963);
     entityManager.createEntity("Devil3", "DVL003", 700, -37.914, 144.873);
 
-    engine.rootContext()->setContextProperty("entityManager", &entityManager);
+    auto networkInterface = std::make_unique<NetworkImplementation>();
+    NetworkInterfaceWrapper networkWrapper(networkInterface.get());
 
-    // Load the QML file
+    engine.rootContext()->setContextProperty("entityManager", &entityManager);
+    engine.rootContext()->setContextProperty("networkWrapper", &networkWrapper);
+
     engine.load(QUrl(QStringLiteral("qrc:/main.qml")));
+
+    if (engine.rootObjects().isEmpty())
+        return -1;
 
     return app.exec();
 }

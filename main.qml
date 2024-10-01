@@ -17,7 +17,7 @@ Window {
 
         WebChannel {
             id: channel
-            registeredObjects: [entityManagerObject, networkImplementationObject]
+            registeredObjects: [entityManagerObject, networkWrapperObject]
         }
 
         webChannel: channel
@@ -28,22 +28,23 @@ Window {
         id: entityManagerObject
         WebChannel.id: "entityManager"
 
-        /* GETTERS */
+        /* Getting */
         function getEntityByUID(UID) { if (entityManager) return entityManager.getEntityByUID(UID) }
         function getEntityLongRadByUID(UID) { if (entityManager) return  entityManager.getEntityByUID(UID).longitudeRadians }
         function getEntityLatRadByUID(UID) { if (entityManager) return entityManager.getEntityByUID(UID).latitudeRadians }
         function getEntityLongDegByUID(UID) { if (entityManager) return entityManager.getEntityByUID(UID).returnLongAsDeg() }
         function getEntityLatDegByUID(UID) { if (entityManager) return entityManager.getEntityByUID(UID).returnLatAsDeg() }
 
-        /* SETTERS */
+        /* Setting */
         function setEntityUID(currUID, newUID) { if (entityManager) entityManager.getEntityByUID(currUID).setUID(newUID) }
         function setEntityLongRadByUID(UID, lng) { if (entityManager)  entityManager.getEntityByUID(UID).setLongitudeRadians(lng) }
         function setEntityLatRadByUID(UID, lat) { if (entityManager) entityManager.getEntityByUID(UID).setLatitudeRadians(lat) }
 
-        /* MISC. */
+        /* Errors and logging. */
         function logMessage(message) { if (entityManager) entityManager.logMessage(message) }
         function qmlLog(msg) { console.debug(msg) }
 
+        /* Entity helpers */
         function createEntity(name, UID, radius, latitude, longitude) { if (entityManager) return entityManager.createEntity(name, UID, radius, latitude, longitude) }
 
         function printAllEntities() { if (entityManager) entityManager.printAllEntities() }
@@ -59,60 +60,62 @@ Window {
         }
     }
 
-    // Expose NetworkImplementation to the JavaScript
+    // Expose NetworkInterfaceWrapper to the JavaScript
     QtObject {
-        id: networkImplementationObject
-        WebChannel.id: "networkImplementation"
+        id: networkWrapperObject
+        WebChannel.id: "networkWrapper"
 
-        // Initialisation and connection
+        /* Initialisation and connection */
         function initialise(address, port) {
-            if (networkImplementation) networkImplementation.initialise(address, port)
+            if (networkWrapper) networkWrapper.initialise(address, port)
         }
         function close() {
-            if (networkImplementation) networkImplementation.close()
+            if (networkWrapper) networkWrapper.close()
         }
 
-        // Sending methods
+        /* Sending */
         function sendPESetting(setting, id, updateVal) {
-            if (networkImplementation) return networkImplementation.sendPESetting(setting, id, updateVal)
+            if (networkWrapper) return networkWrapper.sendPESetting(setting, id, updateVal)
         }
         function sendEmitterSetting(setting, id, updateVal) {
-            if (networkImplementation) return networkImplementation.sendEmitterSetting(setting, id, updateVal)
+            if (networkWrapper) return networkWrapper.sendEmitterSetting(setting, id, updateVal)
         }
         function sendBlob(blobString) {
-            if (networkImplementation) return networkImplementation.sendBlob(blobString)
+            if (networkWrapper) return networkWrapper.sendBlob(blobString)
         }
         function sendPE(pe) {
-            if (networkImplementation) return networkImplementation.sendPE(pe)
+            if (networkWrapper) return networkWrapper.sendPE(pe)
         }
         function sendEmitter(emitter) {
-            if (networkImplementation) return networkImplementation.sendEmitter(emitter)
+            if (networkWrapper) return networkWrapper.sendEmitter(emitter)
         }
         function sendComplexBlob(pe, emitter, doubleMap) {
-            if (networkImplementation) return networkImplementation.sendComplexBlob(pe, emitter, doubleMap)
+            if (networkWrapper) return networkWrapper.sendComplexBlob(pe, emitter, doubleMap)
         }
 
-        // Receiving methods
+        /* Receiving */
         function receiveSetting() {
-            if (networkImplementation) return networkImplementation.receiveSetting()
+            if (networkWrapper) return networkWrapper.receiveSetting()
         }
         function receivePE() {
-            if (networkImplementation) return networkImplementation.receivePE()
+            if (networkWrapper) return networkWrapper.receivePE()
         }
         function receiveEmitter() {
-            if (networkImplementation) return networkImplementation.receiveEmitter()
+            if (networkWrapper) return networkWrapper.receiveEmitter()
         }
         function receiveBlob() {
-            if (networkImplementation) return networkImplementation.receiveBlob()
+            if (networkWrapper) return networkWrapper.receiveBlob()
         }
         function receiveComplexBlob() {
-            if (networkImplementation) return networkImplementation.receiveComplexBlob()
+            if (networkWrapper) return networkWrapper.receiveComplexBlob()
         }
+    }
 
-        // Logging
-        function log(message) {
-            if (networkImplementation) networkImplementation.log(message)
+    /* Error handling */
+    Connections {
+        target: networkWrapper
+        function onError(message) {
+            console.error("Network error:", message)
         }
     }
 }
-
