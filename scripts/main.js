@@ -1,240 +1,181 @@
-// Configuration
-const CONFIG = {
-    initialView: {
-        lat: -37.814,
-        lng: 144.963,
-        zoom: 13
-    },
-    tileLayer: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
-    animationParams: {
-        radius: 0.001,
-        speed: 0.01,
-        period: 5000
-    }
-};
+// map.js
+let entityManager;
+let networkWrapper;
 
-// Main application object
-const MapApp = {
-    map: null,
-    layers: {
-        base: null,
-        markers: null,
-        lines: null,
-        entities: null
-    },
-    entityManager: null,
-    entities: new Map(),
-    userMarker: null,
-    userRing: null,
-    autoCentreOnPlane: true,
-    animationFrame: null,
-
-    async init() {
-        this.initMap();
-        await this.initWebChannel();
-        await this.runTests();
-        this.initEntities();
-        this.bindEvents();
-        this.startAnimation();
-    },
-
-    initMap() {
-        this.map = L.map('map').setView([CONFIG.initialView.lat, CONFIG.initialView.lng], CONFIG.initialView.zoom);
-        this.layers.base = L.tileLayer(CONFIG.tileLayer).addTo(this.map);
-        this.layers.markers = L.layerGroup().addTo(this.map);
-        this.layers.lines = L.layerGroup().addTo(this.map);
-        this.layers.entities = L.layerGroup().addTo(this.map);
-    },
-
-    async initWebChannel() {
-        return new Promise((resolve, reject) => {
-            new QWebChannel(qt.webChannelTransport, channel => {
-                this.entityManager = channel.objects.entityManager;
-                if (this.entityManager) {
-                    resolve();
-                } else {
-                    reject(new Error('Failed to initialise entityManager'));
-                }
-            });
-        });
-    },
-
-    async runTests() {
-        this.log('Running tests...');
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        this.log('Tests completed');
-    },
-
-    async initEntities() {
-        const entityList = await this.getEntityList();
-        entityList.forEach(this.addEntity.bind(this));
-        this.initUserMarker();
-    },
-
-    async getEntityList() {
-        return new Promise(resolve => {
-            this.entityManager.getEntityList(list => resolve(list));
-        });
-    },
-
-    addEntity(entity) {
-        const latLng = L.latLng(entity.latitude, entity.longitude);
-        const color = this.getRandomColor();
-        const marker = this.createDiamondMarker(latLng, color).addTo(this.layers.entities);
-        const circle = L.circle(latLng, { color, radius: 2000, fillOpacity: 0.05 }).addTo(this.layers.entities);
-
-        this.entities.set(entity.UID, {
-            marker,
-            circle,
-            latLng,
-            direction: Math.random() * 2 * Math.PI,
-            speed: 0.0001,
-            stopDuration: Math.random() * 2000 + 2000,
-            timeStopped: 0,
-            lastTimestamp: 0
-        });
-    },
-
-    initUserMarker() {
-        const userLatLng = L.latLng(CONFIG.initialView.lat, CONFIG.initialView.lng);
-        this.userMarker = this.createDiamondMarker(userLatLng, 'white').addTo(this.map);
-        this.userRing = L.circle(userLatLng, { color: 'white', radius: 1000, fillOpacity: 0.05 }).addTo(this.map);
-    },
-
-    createDiamondMarker(latLng, color) {
-        return L.marker(latLng, {
-            icon: L.divIcon({
-                className: 'diamond-icon',
-                html: `<div style="background-color: ${color}; width: 20px; height: 20px; transform: rotate(45deg);"></div>`,
-                iconSize: [20, 20],
-                iconAnchor: [10, 10]
-            })
-        });
-    },
-
-    getRandomColor() {
-        return `hsl(${Math.random() * 360}, 100%, 50%)`;
-    },
-
-    bindEvents() {
-        document.addEventListener('keydown', this.handleKeyPress.bind(this));
-        // Add more event listeners as needed
-    },
-
-    handleKeyPress(event) {
-        const step = 0.001;
-        switch(event.key) {
-            case 'ArrowUp': this.moveUserMarker(step, 0); break;
-            case 'ArrowDown': this.moveUserMarker(-step, 0); break;
-            case 'ArrowLeft': this.moveUserMarker(0, -step); break;
-            case 'ArrowRight': this.moveUserMarker(0, step); break;
-        }
-    },
-
-    moveUserMarker(deltaLat, deltaLng) {
-        const newLat = this.userMarker.getLatLng().lat + deltaLat;
-        const newLng = this.userMarker.getLatLng().lng + deltaLng;
-        const newLatLng = L.latLng(newLat, newLng);
-        this.updateUserPosition(newLatLng);
-    },
-
-    updateUserPosition(latLng) {
-        this.userMarker.setLatLng(latLng);
-        this.userRing.setLatLng(latLng);
-        if (this.autoCentreOnPlane) {
-            this.map.setView(latLng);
-        }
-    },
-
-    startAnimation() {
-        const animate = (timestamp) => {
-            this.entities.forEach(entity => this.animateEntity(entity, timestamp));
-            this.animationFrame = requestAnimationFrame(animate);
-        };
-        this.animationFrame = requestAnimationFrame(animate);
-    },
-
-    stopAnimation() {
-        if (this.animationFrame) {
-            cancelAnimationFrame(this.animationFrame);
-            this.animationFrame = null;
-        }
-    },
-
-    animateEntity(entity, timestamp) {
-        entity.timeStopped += timestamp - (entity.lastTimestamp || timestamp);
-        entity.lastTimestamp = timestamp;
-
-        if (entity.timeStopped < entity.stopDuration) {
-            const latLng = entity.marker.getLatLng();
-            const newLatLng = L.latLng(
-                latLng.lat + Math.sin(entity.direction) * entity.speed,
-                latLng.lng + Math.cos(entity.direction) * entity.speed
-            );
-
-            entity.marker.setLatLng(newLatLng);
-            entity.circle.setLatLng(newLatLng);
-
-            // Update backend entity position
-            this.updateEntityPosition(entity.marker.options.title, newLatLng);
-
-            if (Math.random() < 0.01) entity.direction = Math.random() * 2 * Math.PI;
-            if (Math.random() < 0.01) {
-                entity.stopDuration = Math.random() * 2000 + 2000;
-                entity.timeStopped = 0;
-            } else if (Math.random() < 0.01) {
-                entity.direction += Math.PI;
+async function initWebChannel() {
+    return new Promise((resolve, reject) => {
+        new QWebChannel(qt.webChannelTransport, channel => {
+            entityManager = channel.objects.entityManager;
+            networkWrapper = channel.objects.networkWrapper;
+            if (entityManager && networkWrapper) {
+                resolve();
+            } else {
+                reject(new Error('Failed to initialise entityManager and networkWrapper'));
             }
-        } else {
-            entity.speed = 0;
-            if (Math.random() < 0.01) {
-                entity.speed = 0.00005;
-                entity.stopDuration = Math.random() * 2000 + 2000;
-                entity.timeStopped = 0;
-            }
-        }
-    },
-
-    updateEntityPosition(UID, latLng) {
-        if (this.entityManager) {
-            const latRad = this.degToRad(latLng.lat);
-            const lngRad = this.degToRad(latLng.lng);
-            this.entityManager.setEntityLatRadByUID(UID, latRad);
-            this.entityManager.setEntityLongRadByUID(UID, lngRad);
-        }
-    },
-
-    degToRad(degrees) {
-        return degrees * (Math.PI / 180);
-    },
-
-    addEntity(entity) {
-        const latLng = L.latLng(entity.latitude, entity.longitude);
-        const color = this.getRandomColor();
-        const marker = this.createDiamondMarker(latLng, color).addTo(this.layers.entities);
-        marker.options.title = entity.UID; // Add UID to marker for reference
-
-        const circle = L.circle(latLng, { color, radius: 2000, fillOpacity: 0.05 }).addTo(this.layers.entities);
-
-        this.entities.set(entity.UID, {
-            marker,
-            circle,
-            latLng,
-            direction: Math.random() * 2 * Math.PI,
-            speed: 0.0001,
-            stopDuration: Math.random() * 2000 + 2000,
-            timeStopped: 0,
-            lastTimestamp: 0
         });
-    },
+    });
+}
+initWebChannel();
 
-    log(message) {
-        if (this.entityManager) {
-            this.entityManager.qmlLog(`JS: ${message}`);
-        }
-        console.log(message);
+// Initialise the map centered on Melbourne, Australia
+const map = L.map('map').setView([-37.8136, 144.9631], 10);
+
+// Custom dark style for the map
+L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+    subdomains: 'abcd',
+    maxZoom: 19
+}).addTo(map);
+
+// Custom icon for entities
+// FIXME: Decide on icon pngs and add to codebase
+const entityIcon = L.icon({
+    // iconUrl: 'qrc:///images/entity_icon.png',
+    iconSize: [32, 32],
+    iconAnchor: [16, 16]
+});
+
+// Custom icon for emitters
+const emitterIcon = L.icon({
+    // iconUrl: 'qrc:///images/emitter_icon.png',
+    iconSize: [32, 32],
+    iconAnchor: [16, 16]
+});
+
+// Object to store all markers
+const markers = {};
+
+// Function to add or update an entity on the map
+function updateEntity(entity) {
+    const position = [entity.latitude, entity.longitude];
+    if (markers[entity.UID]) {
+        markers[entity.UID].setLatLng(position);
+    } else {
+        markers[entity.UID] = L.marker(position, {icon: entityIcon})
+            .addTo(map)
+            .bindPopup(`
+                <b>${entity.name}</b><br>
+                UID: ${entity.UID}<br>
+                Latitude: ${entity.latitude.toFixed(4)}<br>
+                Longitude: ${entity.longitude.toFixed(4)}<br>
+                Altitude: ${entity.altitude} m
+            `);
     }
-};
+}
 
-// Initialise the application when the window loads
-window.onload = () => MapApp.init().catch(error => console.error('Initialization error:', error));
+// Function to add or update an emitter on the map
+function updateEmitter(emitter) {
+    const position = [emitter.lat, emitter.lon];
+    if (markers[emitter.id]) {
+        markers[emitter.id].setLatLng(position);
+    } else {
+        markers[emitter.id] = L.marker(position, {icon: emitterIcon})
+            .addTo(map)
+            .bindPopup(`
+                <b>${emitter.type}</b><br>
+                ID: ${emitter.id}<br>
+                Latitude: ${emitter.lat.toFixed(4)}<br>
+                Longitude: ${emitter.lon.toFixed(4)}<br>
+                Frequency: ${emitter.freqMin.toFixed(2)} - ${emitter.freqMax.toFixed(2)} MHz
+            `);
+    }
+}
+
+// Function to remove an entity or emitter from the map
+function removeMarker(id) {
+    if (markers[id]) {
+        map.removeLayer(markers[id]);
+        delete markers[id];
+    }
+}
+
+// Function to update the map with current entities and emitters
+function updateMap() {
+    // Get entities from EntityManager
+    // const entities = entityManager.getEntityList();
+    // entities.forEach(updateEntity);
+
+    // // Receive emitters from NetworkInterfaceWrapper
+    // const emitter = networkWrapper.receiveEmitter();
+    // if (emitter) {
+    //     updateEmitter(emitter);
+    // }
+    entityManager.qmlLog("Hello Boss")
+}
+
+// Update the map every 5 seconds
+setInterval(updateMap, 5000);
+
+// Add radar-like sweep effect
+const radarSweep = L.circle([-37.8136, 144.9631], {
+    radius: 100000,
+    color: '#00ff00',
+    fillColor: '#00ff00',
+    fillOpacity: 0.1,
+    weight: 2
+}).addTo(map);
+
+let angle = 0;
+function animateRadar() {
+    angle = (angle + 2) % 360;
+    const x = 100000 * Math.cos(angle * Math.PI / 180);
+    const y = 100000 * Math.sin(angle * Math.PI / 180);
+    radarSweep.setLatLng(map.layerPointToLatLng(
+        map.latLngToLayerPoint([-37.8136, 144.9631]).add(L.point(x, y))
+    ));
+    requestAnimationFrame(animateRadar);
+}
+animateRadar();
+
+// Add some UI elements
+const hud = document.createElement('div');
+hud.className = 'hud';
+hud.innerHTML = `
+    <div class="crosshair">+</div>
+    <div class="altitude">ALT: 10000 FT</div>
+    <div class="speed">SPD: 500 KTS</div>
+    <div class="heading">HDG: 090°</div>
+`;
+document.body.appendChild(hud);
+
+// Style for the HUD
+// Style for the HUD
+const style = document.createElement('style');
+style.textContent = `
+    .hud {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none; /* Ensures the HUD doesn't block interactions with the map */
+        font-family: monospace;
+        color: #00ff00;
+        text-shadow: 0 0 5px #00ff00;
+        z-index: 10000; /* Set a high z-index to ensure it stays above the map */
+    }
+    .crosshair {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        font-size: 40px;
+    }
+    .altitude {
+        position: absolute;
+        bottom: 20px;
+        left: 20px;
+    }
+    .speed {
+        position: absolute;
+        bottom: 20px;
+        right: 20px;
+    }
+    .heading {
+        position: absolute;
+        top: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+    }
+`;
+document.head.appendChild(style);
+

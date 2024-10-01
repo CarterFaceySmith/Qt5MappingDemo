@@ -1,62 +1,16 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Interactive Map</title>
-    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
-    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons" />
-    <link rel="stylesheet" type="text/css" href="mapStyle.css" />
+    <style>
+        #map { height: 100vh; width: 100%; }
+    </style>
 </head>
 <body>
     <div id="map"></div>
-    <div id="controls">
-        <h3>Map Controls</h3>
-        <ul>
-            <li><strong>Click:</strong> Set/Delete Lines and Points</li>
-            <li><strong>Drag:</strong> Pan Map</li>
-            <li><strong>Scroll Wheel:</strong> Zoom In/Out</li>
-            <li><strong>Arrow Keys:</strong> Move Plane</li>
-        </ul>
-        <div id="map-actions">
-            <li><button id="scroll" class="active">Scroll</button>
-            <li><button id="add-point">Add Point</button>
-            <li><button id="draw-line">Draw Line</button>
-            <li><button id="remove-point">Remove Point</button>
-        </div>
-        <div id="map-mode-toggle">
-            <label for="map-mode">Map Type:</label>
-            <select id="map-mode">
-                <option value="osm">OpenStreetMap</option>
-                <option value="stamen-terrain">Stamen Terrain</option>
-                <option value="carto-light">Carto Light</option>
-            </select>
-        </div>
-        <div id="center-toggle">
-            <button id="toggle-centre">Centre on Plane</button>
-            <button onclick="logMessage('Test message')">Message EM in Qt</button>
-        </div>
-        <div>
-        <br>
-        <h3>Qt WebChannel EntityManager</h3>
-        <ul>
-            <li><input type="text" id="name" placeholder="Entity Name">
-            <li><input type="text" id="UID" placeholder="Entity UID">
-            <li><input type="number" id="radius" placeholder="Entity Radius">
-            <li><input type="number" id="latitude" placeholder="Entity Latitude">
-            <li><input type="number" id="longitude" placeholder="Entity Longitude">
-            <li><button onclick="createEntity()">Create Entity</button>
-            <li><button onclick="getEntityByUID()">Get Entity by UID</button>
-            <li><input type="text" id="newId" placeholder="New Entity ID">
-            <li><button onclick="updateEntityId()">Update Entity ID</button>
-            <li><button onclick="printAllEntities()">Print All Entities</button>
-            <li><input type="text" id="logMessage" placeholder="Message to Log">
-            <li><button onclick="logMessage()">Log Message</button>
-        </ul>
-        </div>
-    </div>
-    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
     <script src="qrc:///qtwebchannel/qwebchannel.js"></script>
     <script src="qrc:///scripts/main.js"></script>
-    </body>
+</body>
 </html>
