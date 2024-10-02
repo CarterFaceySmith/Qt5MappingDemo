@@ -6,6 +6,7 @@
 #include "EntityManager.h"
 #include "NetworkInterfaceWrapper.h"
 #include "AbstractNetworkInterface.h"
+#include "Entity.h"
 
 int main(int argc, char *argv[])
 {
@@ -23,6 +24,7 @@ int main(int argc, char *argv[])
     auto networkInterface = std::make_unique<NetworkImplementation>();
     NetworkInterfaceWrapper networkWrapper(networkInterface.get());
 
+    qmlRegisterType<Entity>("Qt6Map", 1, 0, "Entity");
     engine.rootContext()->setContextProperty("entityManager", &entityManager);
     engine.rootContext()->setContextProperty("networkWrapper", &networkWrapper);
 

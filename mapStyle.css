@@ -23,6 +23,38 @@ body {
     transform: rotate(45deg);
     border-radius: 2px; /* Optional: slight rounding of corners */
 }
+.hud {
+position: fixed;
+top: 0;
+left: 0;
+width: 100%;
+height: 100%;
+pointer-events: none;
+font-family: monospace;
+color: #00ff00;
+text-shadow: 0 0 5px #00ff00;
+z-index: 10000;
+}
+.crosshair {
+position: absolute;
+top: 50%;
+left: 50%;
+transform: translate(-50%, -50%);
+font-size: 40px;
+}
+.altitude, .speed, .heading, .coordinates, .entity-count, .emitter-count, .network-status {
+position: absolute;
+padding: 5px;
+background-color: rgba(0, 0, 0, 0.5);
+border-radius: 5px;
+}
+.altitude { bottom: 20px; left: 20px; }
+.speed { bottom: 20px; right: 20px; }
+.heading { top: 20px; left: 50%; transform: translateX(-50%); }
+.coordinates { top: 20px; left: 20px; }
+.entity-count { top: 20px; right: 20px; }
+.emitter-count { top: 50px; right: 20px; }
+.network-status { bottom: 20px; left: 50%; transform: translateX(-50%); }
 #controls {
     position: absolute;
     top: 10px;
