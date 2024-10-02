@@ -31,23 +31,29 @@ const MapApp = {
     userRing: null,
     autoCentreOnPlane: true,
     animationFrame: null,
+    lastFrameTime: 0,
+
+    // FIXME: Junk test data, remove
+    emitterData: [
+    ],
 
     async init() {
         this.initMap();
         await this.initWebChannel();
         await this.initEntities();
-        // await this.initEmitters(); // FIXME: Commented out until have emitters for testing
+        this.initEmitters();
         this.bindEvents();
         this.startAnimation();
         this.initHUD();
+        this.initLayerControls();
     },
 
     initMap() {
-        this.map = L.map('map').setView([CONFIG.initialView.lat, CONFIG.initialView.lng], CONFIG.initialView.zoom);
+        this.map = L.map('map', { zoomControl: false }).setView([CONFIG.initialView.lat, CONFIG.initialView.lng], CONFIG.initialView.zoom);
         this.layers.base = L.tileLayer(CONFIG.tileLayer, {
-                                           subdomains: 'abcd',
-                                           maxZoom: 19
-                                       }).addTo(this.map);
+            subdomains: 'abcd',
+            maxZoom: 19
+        }).addTo(this.map);
         this.layers.markers = L.layerGroup().addTo(this.map);
         this.layers.lines = L.layerGroup().addTo(this.map);
         this.layers.entities = L.layerGroup().addTo(this.map);
@@ -74,9 +80,23 @@ const MapApp = {
         this.initUserMarker();
     },
 
-    async initEmitters() {
-        const emitterList = await this.getEmitterList();
-        emitterList.forEach(this.addEmitter.bind(this));
+    initEmitters() {
+        this.emitterData.forEach(this.addEmitter.bind(this));
+        this.addRandomEmitters(5);
+    },
+
+    addRandomEmitters(count) {
+        const emitterTypes = ["RADAR", "RADIO", "JAMMER", "UNKNOWN"];
+        for (let i = 0; i < count; i++) {
+            const randomEmitter = {
+                UID: `TEST_EMITTER_${i + 1}`,
+                latitude: CONFIG.initialView.lat + (Math.random() - 0.5) * 0.3,
+                longitude: CONFIG.initialView.lng + (Math.random() - 0.5) * 0.3,
+                type: emitterTypes[Math.floor(Math.random() * emitterTypes.length)]
+            };
+            this.emitterData.push(randomEmitter);
+            this.addEmitter(randomEmitter);
+        }
     },
 
     async getEntityList() {
@@ -117,18 +137,6 @@ const MapApp = {
     },
 
     createEntityMarker(latLng) {
-        // Option 1: Clear white dot
-        // return L.circleMarker(latLng, {
-        //     radius: 4,
-        //     fillColor: 'white',
-        //     color: 'white',
-        //     weight: 2,
-        //     opacity: 1,
-        //     fillOpacity: 1
-        // });
-
-        // Option 2: Non-filled white diamond (uncomment to use)
-
         return L.marker(latLng, {
             icon: L.divIcon({
                 className: 'entity-icon',
@@ -139,18 +147,61 @@ const MapApp = {
                 iconAnchor: [10, 10]
             })
         });
-
     },
 
-    createEmitterMarker(latLng) {
-        return L.circleMarker(latLng, {
-            radius: 3,
-            fillColor: 'red',
-            color: 'red',
+    addEmitter(emitter) {
+        const latLng = L.latLng(emitter.latitude, emitter.longitude);
+        const marker = this.createEmitterMarker(latLng, emitter.type).addTo(this.layers.emitters);
+        marker.options.title = `${emitter.UID} (${emitter.type})`;
+
+        const circle = L.circle(latLng, {
+            color: this.getEmitterColor(emitter.type),
             weight: 1,
-            opacity: 1,
-            fillOpacity: 0.7
+            fillColor: this.getEmitterColor(emitter.type),
+            fillOpacity: 0.1,
+            radius: this.getEmitterRadius(emitter.type)
+        }).addTo(this.layers.emitters);
+
+        this.emitters.set(emitter.UID, {
+            marker,
+            circle,
+            latLng,
+            type: emitter.type,
+            lastUpdate: Date.now(),
         });
+    },
+
+    createEmitterMarker(latLng, type) {
+        const color = this.getEmitterColor(type);
+        return L.marker(latLng, {
+            icon: L.divIcon({
+                className: 'emitter-icon',
+                html: `<svg width="20" height="20" viewBox="0 0 20 20">
+                <circle cx="10" cy="10" r="5" fill="${color}" />
+                <circle cx="10" cy="10" r="8" fill="none" stroke="${color}" stroke-width="2" />
+                </svg>`,
+                iconSize: [20, 20],
+                iconAnchor: [10, 10]
+            })
+        });
+    },
+
+    getEmitterColor(type) {
+        switch (type) {
+            case "RADAR": return "#ff0000";
+            case "RADIO": return "#00ff00";
+            case "JAMMER": return "#ff00ff";
+            default: return "#ffff00";
+        }
+    },
+
+    getEmitterRadius(type) {
+        switch (type) {
+            case "RADAR": return 7000;
+            case "RADIO": return 5000;
+            case "JAMMER": return 3000;
+            default: return 4000;
+        }
     },
 
     initUserMarker() {
@@ -192,7 +243,31 @@ const MapApp = {
         const newLat = this.userMarker.getLatLng().lat + deltaLat;
         const newLng = this.userMarker.getLatLng().lng + deltaLng;
         const newLatLng = L.latLng(newLat, newLng);
-        this.updateUserPosition(newLatLng);
+        this.animateUserMarker(newLatLng);
+    },
+
+    animateUserMarker(targetLatLng) {
+        const startLatLng = this.userMarker.getLatLng();
+        const startTime = Date.now();
+        const duration = 500; // Animation duration in milliseconds
+
+        const animate = () => {
+            const currentTime = Date.now();
+            const elapsedTime = currentTime - startTime;
+            const progress = Math.min(elapsedTime / duration, 1);
+
+            const newLat = startLatLng.lat + (targetLatLng.lat - startLatLng.lat) * progress;
+            const newLng = startLatLng.lng + (targetLatLng.lng - startLatLng.lng) * progress;
+            const newLatLng = L.latLng(newLat, newLng);
+
+            this.updateUserPosition(newLatLng);
+
+            if (progress < 1) {
+                requestAnimationFrame(animate);
+            }
+        };
+
+        animate();
     },
 
     updateUserPosition(latLng) {
@@ -216,52 +291,36 @@ const MapApp = {
         <div class="coordinates">LAT: --.---- LON: ---.----</div>
         <div class="entity-count">ENTITIES: --</div>
         <div class="emitter-count">EMITTERS: --</div>
+        <div class="emitter-types"></div>
         <div class="network-status">NETWORK: --</div>
         `;
         document.body.appendChild(hud);
         this.styleHUD();
     },
 
+    initLayerControls() {
+        const layerControl = L.control.layers({
+            'Base Map': this.layers.base
+        }, {
+            'Entities': this.layers.entities,
+            'Emitters': this.layers.emitters,
+            'Markers': this.layers.markers,
+            'Lines': this.layers.lines
+        }).addTo(this.map);
+    },
 
     startAnimation() {
         const animate = (timestamp) => {
-            this.entities.forEach(entity => this.animateEntity(entity, timestamp));
+            if (this.lastFrameTime === 0) {
+                this.lastFrameTime = timestamp;
+            }
+            const deltaTime = timestamp - this.lastFrameTime;
+            this.lastFrameTime = timestamp;
+
             this.updateHUD();
             this.animationFrame = requestAnimationFrame(animate);
         };
         this.animationFrame = requestAnimationFrame(animate);
-    },
-
-    animateEntity(entity, timestamp) {
-        const now = Date.now();
-        const elapsed = now - entity.lastUpdate;
-        entity.lastUpdate = now;
-
-        // Update heading
-        if (Math.random() < 0.02) { // 2% chance to initiate a turn
-            entity.turnRate = (Math.random() - 0.5) * 2; // Turn rate between -1 and 1 degree per second
-        }
-        if (Math.random() < 0.01) { // 1% chance to stop turning
-            entity.turnRate = 0;
-        }
-        entity.heading += entity.turnRate * (elapsed / 1000);
-        entity.heading = (entity.heading + 360) % 360; // Normalise heading
-
-        // Update position
-        const distance = entity.speed * elapsed;
-        const latLng = entity.marker.getLatLng();
-        const newLatLng = this.calculateNewPosition(latLng, entity.heading, distance);
-
-        entity.marker.setLatLng(newLatLng);
-        entity.circle.setLatLng(newLatLng);
-
-        this.updateEntityPosition(entity.marker.options.title, newLatLng);
-
-        // Randomly update altitude
-        if (Math.random() < 0.01) { // 1% chance to change altitude
-            entity.altitude += (Math.random() - 0.5) * 1000; // Change by up to 500 feet
-            entity.altitude = Math.max(1000, Math.min(45000, entity.altitude)); // Keep between 1,000 and 45,000 feet
-        }
     },
 
     calculateNewPosition(latLng, heading, distance) {
@@ -303,6 +362,17 @@ const MapApp = {
         document.querySelector('.entity-count').textContent = `ENTITIES: ${this.entities.size}`;
         document.querySelector('.emitter-count').textContent = `EMITTERS: ${this.emitters.size}`;
 
+        const emitterTypeCounts = Array.from(this.emitters.values()).reduce((acc, emitter) => {
+            acc[emitter.type] = (acc[emitter.type] || 0) + 1;
+            return acc;
+        }, {});
+
+        const emitterTypeText = Object.entries(emitterTypeCounts)
+            .map(([type, count]) => `${type}: ${count}`)
+            .join(' | ');
+
+        document.querySelector('.emitter-types').textContent = emitterTypeText;
+
         // Assuming the first entity is the user's aircraft for demo purposes
         const userAircraft = this.entities.values().next().value;
         if (userAircraft) {
@@ -319,37 +389,46 @@ const MapApp = {
         const style = document.createElement('style');
         style.textContent = `
         .hud {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        pointer-events: none;
-        font-family: monospace;
-        color: #00ff00;
-        text-shadow: 0 0 5px #00ff00;
-        z-index: 10000;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            font-family: monospace;
+            color: #00ff00;
+            text-shadow: 0 0 5px #00ff00;
+            z-index: 10000;
         }
         .crosshair {
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        font-size: 40px;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 40px;
         }
         .altitude, .speed, .heading, .coordinates, .entity-count, .emitter-count, .network-status {
-        position: absolute;
-        padding: 5px;
-        background-color: rgba(0, 0, 0, 0.5);
-        border-radius: 5px;
+            position: absolute;
+            padding: 5px;
+            background-color: rgba(0, 0, 0, 0.5);
+            border-radius: 5px;
         }
         .altitude { bottom: 20px; left: 20px; }
         .speed { bottom: 20px; right: 20px; }
         .heading { top: 20px; left: 50%; transform: translateX(-50%); }
         .coordinates { top: 20px; left: 20px; }
-        .entity-count { top: 20px; right: 20px; }
-        .emitter-count { top: 50px; right: 20px; }
+        .entity-count { top: 170px; right: 20px; }
+        .emitter-count { top: 200px; right: 20px; }
         .network-status { bottom: 20px; left: 50%; transform: translateX(-50%); }
+        .emitter-types {
+            position: absolute;
+            bottom: 50px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(0, 0, 0, 0.5);
+            border-radius: 5px;
+            padding: 5px;
+        }
         `;
         document.head.appendChild(style);
     },
