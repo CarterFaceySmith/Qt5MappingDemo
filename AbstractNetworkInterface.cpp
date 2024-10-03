@@ -33,10 +33,14 @@ NetworkImplementation::NetworkImplementation()
 void NetworkImplementation::initialise(const std::string& address, unsigned short port) {
     std::lock_guard<std::mutex> lock(std::mutex);
     try {
+        if (socket && socket->is_open()) {
+            socket->close();
+        }
+        socket = std::make_unique<boost::asio::ip::tcp::socket>(io_context);
         boost::asio::ip::tcp::endpoint endpoint(boost::asio::ip::address::from_string(address), port);
         socket->connect(endpoint);
     } catch (const std::exception& e) {
-        logError("Failed to initialise connection: " + std::string(e.what()));
+        logError("Failed to initialize connection: " + std::string(e.what()));
         throw;
     }
 }
@@ -278,6 +282,9 @@ std::tuple<std::string, std::string, std::string, int> NetworkImplementation::re
 PE NetworkImplementation::receivePE() {
     std::lock_guard<std::mutex> lock(std::mutex);
     try {
+        if (!socket || !socket->is_open()) {
+            throw std::runtime_error("Socket is not open");
+        }
         boost::asio::streambuf buf;
         boost::asio::read_until(*socket, buf, '\n');
         std::string data{boost::asio::buffers_begin(buf.data()),
@@ -285,6 +292,13 @@ PE NetworkImplementation::receivePE() {
         buf.consume(buf.size());
         validateAndPrintDataBufferSize(data, "receivePE");
         return deserializePE(data);
+    } catch (const boost::system::system_error& e) {
+        if (e.code() == boost::asio::error::eof) {
+            logError("Connection closed by server");
+        } else {
+            logError("Failed to receive PE: " + std::string(e.what()));
+        }
+        throw;
     } catch (const std::exception& e) {
         logError("Failed to receive PE: " + std::string(e.what()));
         throw;

@@ -32,6 +32,11 @@ const MapApp = {
     autoCentreOnPlane: true,
     animationFrame: null,
     lastFrameTime: 0,
+    networkWrapper: null,
+    userMarkerAnimationFrame: null,
+    networkRetryInterval: null,
+    networkRetryCount: 0,
+    maxNetworkRetries: 5,
 
     // FIXME: Junk test data, remove
     emitterData: [
@@ -40,12 +45,13 @@ const MapApp = {
     async init() {
         this.initMap();
         await this.initWebChannel();
+        await this.initNetworkInterface();
         await this.initEntities();
-        this.initEmitters();
         this.bindEvents();
         this.startAnimation();
         this.initHUD();
         this.initLayerControls();
+        this.startNetworkPolling();
     },
 
     initMap() {
@@ -66,12 +72,30 @@ const MapApp = {
                 this.entityManager = channel.objects.entityManager;
                 this.networkWrapper = channel.objects.networkWrapper;
                 if (this.entityManager && this.networkWrapper) {
+                    this.networkWrapper.initialise("localhost", 8080);
                     resolve();
                 } else {
                     reject(new Error('Failed to initialise entityManager or networkWrapper'));
                 }
             });
         });
+    },
+
+    async initNetworkInterface() {
+        if (!this.networkWrapper) {
+            console.error('NetworkWrapper not initialized');
+            return;
+        }
+
+        try {
+            await this.networkWrapper.initialise("localhost", 8080);
+            console.log('Network interface initialized');
+            this.networkRetryCount = 0;
+            this.startNetworkPolling();
+        } catch (error) {
+            console.error('Failed to initialize network interface:', error);
+            this.handleNetworkError();
+        }
     },
 
     async initEntities() {
@@ -149,27 +173,132 @@ const MapApp = {
         });
     },
 
-    addEmitter(emitter) {
-        const latLng = L.latLng(emitter.latitude, emitter.longitude);
-        const marker = this.createEmitterMarker(latLng, emitter.type).addTo(this.layers.emitters);
-        marker.options.title = `${emitter.UID} (${emitter.type})`;
+    handleNetworkError() {
+        if (this.networkRetryCount < this.maxNetworkRetries) {
+            this.networkRetryCount++;
+            console.log(`Retrying network connection (${this.networkRetryCount}/${this.maxNetworkRetries})...`);
+            this.networkRetryInterval = setTimeout(() => this.initNetworkInterface(), 5000);
+        } else {
+            console.error('Max network retries reached. Please check your connection and restart the application.');
+        }
+    },
 
-        const circle = L.circle(latLng, {
-            color: this.getEmitterColor(emitter.type),
-            weight: 1,
-            fillColor: this.getEmitterColor(emitter.type),
-            fillOpacity: 0.1,
-            radius: this.getEmitterRadius(emitter.type)
-        }).addTo(this.layers.emitters);
+    startNetworkPolling() {
+        if (this.networkRetryInterval) {
+            clearInterval(this.networkRetryInterval);
+        }
+        setInterval(() => {
+            this.pollNetwork();
+        }, 100);
+    },
 
-        this.emitters.set(emitter.UID, {
-            marker,
-            circle,
-            latLng,
-            type: emitter.type,
-            lastUpdate: Date.now(),
+    async pollNetwork() {
+        try {
+            const pe = await this.receivePE();
+            if (pe) {
+                this.updateOrAddEntity(pe);
+            }
+
+            const emitter = await this.receiveEmitter();
+            if (emitter) {
+                this.updateOrAddEmitter(emitter);
+            }
+        } catch (error) {
+            console.error('Error polling network:', error);
+            this.handleNetworkError();
+        }
+    },
+
+    async receivePE() {
+        return new Promise((resolve, reject) => {
+            this.networkWrapper.receivePE(pe => {
+                if (pe && typeof pe === 'object' && 'lat' in pe && 'lon' in pe) {
+                    resolve(pe);
+                } else {
+                    reject(new Error('Invalid PE data received'));
+                }
+            });
         });
     },
+
+    async receiveEmitter() {
+        return new Promise((resolve, reject) => {
+            this.networkWrapper.receiveEmitter(emitter => {
+                resolve(emitter);
+            });
+        });
+    },
+
+    updateOrAddEntity(pe) {
+            const entity = this.entities.get(pe.id);
+            const newLatLng = L.latLng(pe.lat, pe.lon);
+
+            if (entity) {
+                // Update existing entity
+                entity.targetLatLng = newLatLng;
+                entity.heading = pe.heading;
+                entity.speed = pe.speed;
+                entity.altitude = pe.altitude;
+
+                if (!entity.animating) {
+                    this.animateEntityMovement(entity);
+                }
+            } else {
+                // Add new entity
+                const marker = this.createEntityMarker(newLatLng).addTo(this.layers.entities);
+                const circle = L.circle(newLatLng, {
+                    color: 'white',
+                    weight: 1,
+                    fillColor: 'white',
+                    fillOpacity: 0.1,
+                    radius: 2000
+                }).addTo(this.layers.entities);
+
+                this.entities.set(pe.id, {
+                    marker,
+                    circle,
+                    latLng: newLatLng,
+                    targetLatLng: newLatLng,
+                    heading: pe.heading,
+                    speed: pe.speed,
+                    altitude: pe.altitude,
+                    animating: false
+                });
+            }
+
+            this.updateHUD();
+        },
+
+    updateOrAddEmitter(emitter) {
+        const existingEmitter = this.emitters.get(emitter.id);
+        const newLatLng = L.latLng(emitter.lat, emitter.lon);
+
+        if (existingEmitter) {
+            // Update existing emitter
+            existingEmitter.marker.setLatLng(newLatLng);
+            existingEmitter.circle.setLatLng(newLatLng);
+        } else {
+            // Add new emitter
+            const marker = this.createEmitterMarker(newLatLng, emitter.category).addTo(this.layers.emitters);
+            const circle = L.circle(newLatLng, {
+                color: this.getEmitterColor(emitter.category),
+                weight: 1,
+                fillColor: this.getEmitterColor(emitter.category),
+                fillOpacity: 0.1,
+                radius: this.getEmitterRadius(emitter.category)
+            }).addTo(this.layers.emitters);
+
+            this.emitters.set(emitter.id, {
+                marker,
+                circle,
+                latLng: newLatLng,
+                type: emitter.category
+            });
+        }
+
+        this.updateHUD();
+    },
+
 
     createEmitterMarker(latLng, type) {
         const color = this.getEmitterColor(type);
@@ -229,45 +358,30 @@ const MapApp = {
         document.addEventListener('keydown', this.handleKeyPress.bind(this));
     },
 
+
     handleKeyPress(event) {
         const step = 0.001;
+        let deltaLat = 0;
+        let deltaLng = 0;
+
         switch(event.key) {
-            case 'ArrowUp': this.moveUserMarker(step, 0); break;
-            case 'ArrowDown': this.moveUserMarker(-step, 0); break;
-            case 'ArrowLeft': this.moveUserMarker(0, -step); break;
-            case 'ArrowRight': this.moveUserMarker(0, step); break;
+            case 'ArrowUp': deltaLat = step; break;
+            case 'ArrowDown': deltaLat = -step; break;
+            case 'ArrowLeft': deltaLng = -step; break;
+            case 'ArrowRight': deltaLng = step; break;
+            default: return; // Exit if it's not an arrow key
         }
+
+        this.moveUserMarker(deltaLat, deltaLng);
     },
 
     moveUserMarker(deltaLat, deltaLng) {
-        const newLat = this.userMarker.getLatLng().lat + deltaLat;
-        const newLng = this.userMarker.getLatLng().lng + deltaLng;
+        const currentLatLng = this.userMarker.getLatLng();
+        const newLat = currentLatLng.lat + deltaLat;
+        const newLng = currentLatLng.lng + deltaLng;
         const newLatLng = L.latLng(newLat, newLng);
-        this.animateUserMarker(newLatLng);
-    },
 
-    animateUserMarker(targetLatLng) {
-        const startLatLng = this.userMarker.getLatLng();
-        const startTime = Date.now();
-        const duration = 500;
-
-        const animate = () => {
-            const currentTime = Date.now();
-            const elapsedTime = currentTime - startTime;
-            const progress = Math.min(elapsedTime / duration, 1);
-
-            const newLat = startLatLng.lat + (targetLatLng.lat - startLatLng.lat) * progress;
-            const newLng = startLatLng.lng + (targetLatLng.lng - startLatLng.lng) * progress;
-            const newLatLng = L.latLng(newLat, newLng);
-
-            this.updateUserPosition(newLatLng);
-
-            if (progress < 1) {
-                requestAnimationFrame(animate);
-            }
-        };
-
-        animate();
+        this.updateUserPosition(newLatLng);
     },
 
     updateUserPosition(latLng) {
@@ -276,9 +390,38 @@ const MapApp = {
         if (this.autoCentreOnPlane) {
             this.map.setView(latLng);
         }
-        // Update backend user position
-        this.updateEntityPosition('CHARIOT', latLng);
+        this.updateHUD();
     },
+
+    // animateEntityMovement(entity) {
+    //     entity.animating = true;
+    //     const animate = () => {
+    //         const currentLatLng = entity.marker.getLatLng();
+    //         const targetLatLng = entity.targetLatLng;
+
+    //         if (currentLatLng.equals(targetLatLng)) {
+    //             entity.animating = false;
+    //             return;
+    //         }
+
+    //         const newLat = currentLatLng.lat + (targetLatLng.lat - currentLatLng.lat) * 0.1;
+    //         const newLng = currentLatLng.lng + (targetLatLng.lng - currentLatLng.lng) * 0.1;
+    //         const newLatLng = L.latLng(newLat, newLng);
+
+    //         entity.marker.setLatLng(newLatLng);
+    //         entity.circle.setLatLng(newLatLng);
+
+    //         // Update marker rotation based on heading
+    //         const markerElement = entity.marker.getElement();
+    //         if (markerElement) {
+    //             markerElement.style.transform = `${markerElement.style.transform} rotate(${entity.heading}deg)`;
+    //         }
+
+    //         requestAnimationFrame(animate);
+    //     };
+
+    //     requestAnimationFrame(animate);
+    // },
 
     initHUD() {
         const hud = document.createElement('div');

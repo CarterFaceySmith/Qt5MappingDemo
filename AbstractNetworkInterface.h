@@ -47,6 +47,7 @@ public:
     NetworkImplementation();
     ~NetworkImplementation() override = default;
     boost::asio::ip::tcp::socket* getSocket();
+    bool isConnected() const;
     void initialise(const std::string& address, unsigned short port) override;
     bool sendPE(const PE& pe) override;
     bool sendEmitter(const Emitter& emitter) override;
