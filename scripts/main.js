@@ -249,7 +249,7 @@ const MapApp = {
     animateUserMarker(targetLatLng) {
         const startLatLng = this.userMarker.getLatLng();
         const startTime = Date.now();
-        const duration = 500; // Animation duration in milliseconds
+        const duration = 500;
 
         const animate = () => {
             const currentTime = Date.now();
@@ -277,7 +277,7 @@ const MapApp = {
             this.map.setView(latLng);
         }
         // Update backend user position
-        this.updateEntityPosition('USER', latLng);
+        this.updateEntityPosition('CHARIOT', latLng);
     },
 
     initHUD() {

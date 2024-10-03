@@ -36,7 +36,7 @@ void NetworkImplementation::initialise(const std::string& address, unsigned shor
         boost::asio::ip::tcp::endpoint endpoint(boost::asio::ip::address::from_string(address), port);
         socket->connect(endpoint);
     } catch (const std::exception& e) {
-        logError("Failed to initialize connection: " + std::string(e.what()));
+        logError("Failed to initialise connection: " + std::string(e.what()));
         throw;
     }
 }
