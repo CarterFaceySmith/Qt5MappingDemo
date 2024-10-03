@@ -5,10 +5,10 @@ QT += quick core webenginewidgets gui webchannel
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 SOURCES += \
+        DataManager.cpp \
         Entity.cpp \
         EntityManager.cpp \
-        AbstractNetworkInterface.cpp \
-        NetworkInterfaceWrapper.cpp \
+        NetworkImplementation.cpp \
         main.cpp
 
 RESOURCES += qml.qrc
@@ -29,9 +29,8 @@ DISTFILES += \
     mapStyle.css
 
 HEADERS += \
+    DataManager.h \
     Entity.h \
     EntityManager.h \
-    AbstractNetworkInterface.h  \
-    NetworkInterfaceWrapper.h \
     pe.h \
     emitter.h

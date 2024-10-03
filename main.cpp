@@ -1,37 +1,30 @@
-#include <QApplication>
+#include <QGuiApplication>
 #include <QQmlApplicationEngine>
 #include <QQmlContext>
-#include <QtWebEngineWidgets>
-#include <QUrl>
-#include "EntityManager.h"
-#include "NetworkInterfaceWrapper.h"
+#include "DataManager.h"
 #include "AbstractNetworkInterface.h"
-#include "Entity.h"
 
 int main(int argc, char *argv[])
 {
     QGuiApplication app(argc, argv);
+
     QQmlApplicationEngine engine;
 
-    EntityManager entityManager;
-    entityManager.createEntity("C", "CHARIOT", 1000, -37.814, 144.963);
-    entityManager.createEntity("D", "HANGED", 1000, -37.714, 144.863);
-    entityManager.createEntity("J", "JOKER", 1000, -37.914, 144.863);
-    entityManager.createEntity("Devil1", "DVL001", 500, -37.804, 144.953);
-    entityManager.createEntity("Devil2", "DVL002", 500, -37.714, 144.963);
-    entityManager.createEntity("Devil3", "DVL003", 700, -37.914, 144.873);
-
     auto networkInterface = std::make_unique<NetworkImplementation>();
-    NetworkInterfaceWrapper networkWrapper(networkInterface.get());
+    DataManager dataManager(networkInterface.get());
 
-    qmlRegisterType<Entity>("Qt6Map", 1, 0, "Entity");
-    engine.rootContext()->setContextProperty("entityManager", &entityManager);
-    engine.rootContext()->setContextProperty("networkWrapper", &networkWrapper);
+    engine.rootContext()->setContextProperty("dataManager", &dataManager);
 
-    engine.load(QUrl(QStringLiteral("qrc:/main.qml")));
+    const QUrl url(QStringLiteral("qrc:/main.qml"));
+    QObject::connect(&engine, &QQmlApplicationEngine::objectCreated,
+                     &app, [url](QObject *obj, const QUrl &objUrl) {
+        if (!obj && url == objUrl)
+            QCoreApplication::exit(-1);
+    }, Qt::QueuedConnection);
+    engine.load(url);
 
-    if (engine.rootObjects().isEmpty())
-        return -1;
+    // Initialize network connection
+    dataManager.initialize("127.0.0.1", 5461);
 
     return app.exec();
 }
